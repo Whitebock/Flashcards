@@ -1,0 +1,44 @@
+# .NET Core
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Visual Studio Code
+.vscode/
+
+# User-specific files
+*.rsuser
+*.userprefs
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Build results
+*.dll
+*.exe
+*.app
+*.so
+*.dylib
+*.pdb
+
+# Package directories
+*.nuget/
+packages/
+node_modules/
+
+# Visual Studio
+.vs/
+
+# Rider
+.idea/
+*.sln.iml

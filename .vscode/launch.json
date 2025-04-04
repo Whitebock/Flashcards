@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "compounds": [
+        {
+            "name": "Run All",
+            "presentation": {
+				"group": "maingroup",
+				"order": 1
+			},
+            "configurations": [
+                "Api",
+                "FrondEnd"
+            ]
+        }
+    ],
+    "configurations": [
+        {
+            "name": "Api",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/Api/Api.csproj",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+        },
+        {
+            "name": "FrondEnd",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/FrondEnd",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev"],
+        }
+    ]
+}
