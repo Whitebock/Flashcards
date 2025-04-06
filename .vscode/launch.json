@@ -8,20 +8,17 @@
 				"order": 1
 			},
             "configurations": [
-                "Api",
+                "BackEnd",
                 "FrondEnd"
             ]
         }
     ],
     "configurations": [
         {
-            "name": "Api",
+            "name": "BackEnd",
             "type": "dotnet",
             "request": "launch",
-            "projectPath": "${workspaceFolder}/Api/Api.csproj",
-            "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
-            },
+            "projectPath": "${workspaceFolder}/BackEnd/BackEnd.csproj"
         },
         {
             "name": "FrondEnd",
