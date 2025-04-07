@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Card } from '$lib/types/index.js';
+    import type { Card } from '$lib/types';
 
     let { data } = $props();
     let selected = $state<Card>();
@@ -14,17 +14,17 @@
 </script>
 
 <div class="ui container">
-    <h2 class="ui header">Edit Deck "{data.stack.name}"</h2>
+    <h2 class="ui header">Edit Deck</h2>
     <div class="ui grid">
         <div class="eight wide column">
             <h3 class="ui dividing header">Cards</h3>
             <div class="ui divided selection list">
-                {#each data.stack.cards as card}
+                {#each data.cards as card}
                     <div class="item">
                         <i class="question circle middle aligned icon"></i>
                         <div class="content" onclick={() => selected = card}>
-                            <a class="header">{card.question}</a>
-                            <div class="description">{card.answer}</div>
+                            <a class="header">{card.front}</a>
+                            <div class="description">{card.back}</div>
                         </div>
                     </div>
                 {/each}
@@ -38,11 +38,11 @@
                 <div class="ui form">
                     <div class="field">
                         <label>Front</label>
-                        <textarea bind:value={selected.question}></textarea>
+                        <textarea bind:value={selected.front}></textarea>
                     </div>
                     <div class="field">
                         <label>Back</label>
-                        <textarea bind:value={selected.answer}></textarea>
+                        <textarea bind:value={selected.back}></textarea>
                     </div>
                     <button class="ui primary button">Save</button>
                     <button class="ui red button" onclick={() => selected && deleteQuestion(selected)}>Delete</button>

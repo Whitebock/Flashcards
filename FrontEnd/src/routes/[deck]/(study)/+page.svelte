@@ -17,12 +17,12 @@
     </div>
     <div class="ui fluid massive centered raised flash card">
         <div class="content">
-            {data.cards[currentCardIndex].question}
+            {data.cards[currentCardIndex].front}
             <div class="ui horizontal divider">
                 <i class="question icon"></i>
             </div>
             {#if showAnswer}
-            {data.cards[currentCardIndex].answer}
+            {data.cards[currentCardIndex].back}
             {:else}
             &nbsp;
             {/if}

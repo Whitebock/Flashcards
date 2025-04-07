@@ -5,21 +5,21 @@
 <p>Here you can improve your knowledge by studying with flashcards. Below are some example card decks with their current statistics:</p>
 
 <div class="ui cards">
-    {#each data.stacks as stack}
-        {@const rightPercent = (stack.cards.filter(c => c.status == CardStatus.Correct).length / stack.cards.length) * 100}
-        {@const wrongPercent = (stack.cards.filter(c => c.status == CardStatus.Incorrect).length / stack.cards.length) * 100}
-        {@const unansweredPercent = (stack.cards.filter(c => c.status == CardStatus.NotSeen).length / stack.cards.length) * 100}
+    {#each data.decks as deck}
+        {@const rightPercent = (deck.stats.correct / deck.stats.total) * 100}
+        {@const wrongPercent = (deck.stats.incorrect / deck.stats.total) * 100}
+        {@const unansweredPercent = (deck.stats.notSeen / deck.stats.total) * 100}
         <div class="ui card">
             <div class="content">
-                <div class="header">{stack.name}</div>
-                <div class="meta">{stack.cards.length} Cards</div>
+                <div class="header">{deck.name}</div>
+                <div class="meta">{deck.stats.total} Cards</div>
             </div>
             <div class="ui two buttons">
-                <a class="ui button" href="{stack.id}/edit">
+                <a class="ui button" href="{deck.id}/edit">
                     <i class="edit icon"></i>
                     Edit
                 </a>
-                <a class="ui button" href="{stack.id}">
+                <a class="ui button" href="{deck.id}">
                     <i class="graduation cap icon"></i>
                     Study
                 </a>
@@ -35,7 +35,5 @@
 </div>
 
 <script lang="ts">
-    import { CardStatus } from '$lib/types/index.js';
-
     let { data } = $props();
 </script>

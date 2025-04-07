@@ -1,13 +1,19 @@
 export interface Card {
-    question: string;
-    answer: string;
-    status: CardStatus;
+    front: string;
+    back: string;
 }
 
-export interface CardStack {
+export interface DeckStats {
+    notSeen: number;
+    correct: number;
+    incorrect: number;
+    total: number;
+}
+
+export interface Deck {
     id: string;
     name: string;
-    cards: Card[];
+    stats: DeckStats;
 }
 
 export enum CardStatus {
