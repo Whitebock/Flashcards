@@ -1,4 +1,5 @@
 export interface Card {
+    id: string;
     front: string;
     back: string;
 }
@@ -21,3 +22,5 @@ export enum CardStatus {
     Correct,
     Incorrect
 }
+
+export const API_URL = "http://localhost:5124";

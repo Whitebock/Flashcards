@@ -1,7 +1,9 @@
+using Flashcards.CQRS;
+
 namespace Flashcards.Events;
 
-public record DeckCreated(Guid Id, string Name) : EventBase;
+public record DeckCreated(Guid DeckId, string Name) : EventBase;
 
-public record DeckUpdated(string Name) : EventBase;
+public record DeckUpdated(Guid DeckId, string Name) : EventBase;
 
-public record DeckDeleted() : EventBase;
+public record DeckDeleted(Guid DeckId) : EventBase;

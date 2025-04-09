@@ -2,17 +2,8 @@ using Flashcards.CQRS;
 
 namespace Flashcards;
 
-public class InMemoryCommandBus : ICommandBus
+public class InMemoryCommandBus(IEnumerable<ICommandHandler> _commandHandlers) : ICommandBus
 {
-    private readonly IEnumerable<ICommandHandler> _commandHandlers;
-    private readonly IEventBus _eventBus;
-
-    public InMemoryCommandBus(IEnumerable<ICommandHandler> commandHandlers, IEventBus eventBus)
-    {
-        _commandHandlers = commandHandlers;
-        _eventBus = eventBus;
-    }
-
     public void Send(ICommand command)
     {
         var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());

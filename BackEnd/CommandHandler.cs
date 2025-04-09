@@ -4,22 +4,24 @@ using Flashcards.Events;
 
 namespace Flashcards;
 
-public class CommandHandler : ICommandHandler<CreateDeckCommand>, ICommandHandler<CreateCardCommand>
+public class CommandHandler(IEventBus _eventBus) : 
+    ICommandHandler<CreateDeckCommand>, 
+    ICommandHandler<CreateCardCommand>,
+    ICommandHandler<ChangeCardStatus>
 {
-    private readonly IEventBus _eventBus;
-
-    public CommandHandler(IEventBus eventBus)
-    {
-        _eventBus = eventBus;
-    }
-
     public void Handle(CreateDeckCommand command)
     {
-        _eventBus.Publish(new DeckCreated(command.Id, command.Name));
+        _eventBus.Publish(new DeckCreated(command.DeckId, command.Name));
     }
 
     public void Handle(CreateCardCommand command)
     {
-        _eventBus.Publish(new CardCreated(command.DeckId, command.Front, command.Back));
+        _eventBus.Publish(new CardCreated(command.CardId, command.DeckId, command.Front, command.Back));
+        _eventBus.Publish(new CardStatusChanged(command.CardId, CardStatus.NotSeen));
+    }
+
+    public void Handle(ChangeCardStatus command)
+    {
+        _eventBus.Publish(new CardStatusChanged(command.CardId, command.Status));
     }
 }

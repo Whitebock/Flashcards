@@ -1,49 +1,46 @@
-<script lang="ts">
-    let { data } = $props();
-
-    let currentCardIndex = $state(0);
-    let showAnswer = $state(false);
-
-    function nextCard(result: "again"|"good"|"easy") {
-        showAnswer = false;
-        currentCardIndex = (currentCardIndex + 1) % data.cards.length;
-    }
-</script>
-
+<svelte:head>
+	<title>Flashcard Studying</title>
+</svelte:head>
 <div class="ui container flashcard-container">
     <div class="ui small progress" data-percent="10">
         <div class="grey bar" style="width: 10%;"></div>
         <div class="label">7 Cards left</div>
     </div>
-    <div class="ui fluid massive centered raised flash card">
-        <div class="content">
-            {data.cards[currentCardIndex].front}
-            <div class="ui horizontal divider">
-                <i class="question icon"></i>
+    <form method="POST" data-sveltekit-replacestate use:enhance>
+        <div class="ui massive centered raised flash card">
+            <div class="content">
+                {data.card.front}
+                <div class="ui horizontal divider">
+                    <i class="question icon"></i>
+                </div>
+                {#if showAnswer}
+                {data.card.back}
+                {:else}
+                &nbsp;
+                {/if}
             </div>
-            {#if showAnswer}
-            {data.cards[currentCardIndex].back}
-            {:else}
-            &nbsp;
-            {/if}
+            <button class="ui bottom attached button" name="answer" value={showAnswer ? "hide" : "show"}>
+                {showAnswer ? "Hide Answer" : "Show Answer"}
+            </button>
         </div>
-        <button class="ui bottom attached button" onclick={() => showAnswer = !showAnswer}>
-            {showAnswer ? "Hide Answer" : "Show Answer"}
-        </button>
-    </div>
-    <div class="ui three buttons">
-        <button class="ui button" onclick={() => nextCard("again")}>Again</button>
-        <button class="ui button" onclick={() => nextCard("good")}>Good</button>
-        <button class="ui button" onclick={() => nextCard("easy")}>Easy</button>
-    </div>
-    
-    
+        <div class="ui three buttons">
+            <button class="ui button" name="choice" value="again">Again</button>
+            <button class="ui button" name="choice" value="good">Good</button>
+            <button class="ui button" name="choice" value="easy">Easy</button>
+        </div>
+        <input type="hidden" name="cardId" value={data.card.id} />
+    </form>
 </div>
+
+<script lang="ts">
+    import { enhance } from '$app/forms';
+    let { data, form } = $props();
+
+    let showAnswer = $derived(form?.showAnswer == true);
+</script>
 
 <style>
     .flash.card {
-        margin-top: 10vh;
-        margin-bottom: 10vh;
         width: 400px;
     }
 </style>
