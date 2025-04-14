@@ -12,15 +12,12 @@ export const actions = {
         }
         else if(data.has("choice")) {
             const cardId = data.get("cardId");
-            const choice = data.get("choice");
-            const res = await fetch(`${API_URL}/cards/${cardId}`, {
-                method: 'PUT',
+            await fetch(`${API_URL}/cards/${cardId}`, {
+                method: 'PATCH',
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    Choice: choice
-                }),
-                headers: {
-                    "Content-Type": "application/json"
-                }
+                    choice: data.get("choice")
+                })
             })
         }
 	}

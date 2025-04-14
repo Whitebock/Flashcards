@@ -14,19 +14,24 @@ public class DeckListProjection(CardProjection _cardProjection) :
     }
     public record DeckDto(Guid Id) {
         public required string Name { get; set; }
+        public required string Description { get; set; }
+        public string FriendlyId => Name.ToLower().Replace(' ', '_');
         public DeckStatDto Stats { get; set; } = new();
     }
     public List<DeckDto> _decks = [];
 
     public void Handle(DeckCreated e)
     {
-        _decks.Add(new DeckDto(e.DeckId) { Name = e.Name });
+        _decks.Add(new DeckDto(e.DeckId) { Name = e.Name, Description = e.Description });
     }
 
     public void Handle(DeckUpdated @event)
     {
         var deck = _decks.FirstOrDefault(d => d.Id.Equals(@event.DeckId));
-        if (deck != null) deck.Name = @event.Name;
+        if (deck != null) {
+            deck.Name = @event.Name;
+            deck.Description = @event.Description;
+        }
     }
 
     public void Handle(DeckDeleted @event)
@@ -36,6 +41,7 @@ public class DeckListProjection(CardProjection _cardProjection) :
     }
 
     public List<DeckDto> GetAllDecks() => _decks;
+    public DeckDto GetDeck(Guid deckId) => _decks.First(d => d.Id.Equals(deckId));
 
     public void Handle(CardStatusChanged @event)
     {

@@ -2,9 +2,9 @@
 	<title>Flashcard Studying</title>
 </svelte:head>
 <div class="ui container flashcard-container">
-    <div class="ui small progress" data-percent="10">
-        <div class="grey bar" style="width: 10%;"></div>
-        <div class="label">7 Cards left</div>
+    <div class="ui small progress" data-percent={100 - (data.left / data.deck.stats.total) * 100}>
+        <div class="grey bar" style="width: {100 - (data.left / data.deck.stats.total) * 100}%;"></div>
+        <div class="label">{data.left} Cards left</div>
     </div>
     <form method="POST" data-sveltekit-replacestate use:enhance>
         <div class="ui massive centered raised flash card">
