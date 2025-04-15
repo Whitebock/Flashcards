@@ -1,18 +1,12 @@
-# sv
+# Flashcards Frontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This is the frontend for the Flashcards project, built using **SvelteKit**. It provides an intuitive and responsive user interface for creating, managing, and studying flashcards and decks. The frontend communicates with the backend via RESTful APIs.
 
-## Creating a project
+## Technologies Used
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
+- **SvelteKit**: For building the frontend application.
+- **Fomantic-UI**: For styling and UI components.
+- **TypeScript**: For type safety and better developer experience.
 
 ## Developing
 
