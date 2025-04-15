@@ -1,7 +1,7 @@
 using Flashcards.CQRS;
 using Flashcards.Events;
 
-namespace Flashcards.Projections;
+namespace Flashcards.Api.Projections;
 
 public class CardProjection : 
     IEventHandler<CardCreated>,

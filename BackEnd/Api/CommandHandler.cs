@@ -2,7 +2,7 @@ using Flashcards.Commands;
 using Flashcards.CQRS;
 using Flashcards.Events;
 
-namespace Flashcards;
+namespace Flashcards.Api;
 
 public class CommandHandler(IEventBus _eventBus) : 
     ICommandHandler<CreateDeckCommand>, 
