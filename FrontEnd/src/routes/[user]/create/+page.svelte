@@ -1,5 +1,6 @@
+<!--
 <div class="ui three steps">
-    <div class="active step">
+    <div class="step active">
       <i class="folder open outline icon"></i>
       <div class="content">
         <div class="title">Deck Setup</div>
@@ -21,7 +22,7 @@
       </div>
     </div>
 </div>
-
+-->
 <div class="ui segment">
   <form class="ui form" method="POST" use:enhance>
     <div class="field">
@@ -36,15 +37,13 @@
         <label for="url">URL</label>
         <input type="text" id="url" value={"/user/" + name.toLowerCase().replaceAll(" ", "_")}>
     </div>
-    <button class="ui primary button" formaction="?/deck">Next</button>
-</form>
-
-
+    <button class="ui primary button">Next</button>
+  </form>
 </div>
 
 <script lang="ts">
   import { enhance } from '$app/forms';
+  let { form } = $props();
 
   let name = $state("");
-
 </script>

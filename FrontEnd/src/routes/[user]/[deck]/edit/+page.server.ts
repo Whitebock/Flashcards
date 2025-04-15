@@ -21,7 +21,7 @@ export const actions = {
             deck: data.get("name")?.toString().toLowerCase().replaceAll(' ', '_')
         }));
     },
-    delete: async ({request}) => {
+    delete: async ({request, params}) => {
         let data = await request.formData();
         const deckId = data.get("deckId");
 
@@ -29,5 +29,8 @@ export const actions = {
             method: 'DELETE',
             headers: { "Content-Type": "application/json" },
         });
+        redirect(303, resolveRoute("/[user]#decks", {
+            user: params.user
+        }));
     },
 } satisfies Actions;

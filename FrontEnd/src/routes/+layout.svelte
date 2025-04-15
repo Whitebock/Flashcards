@@ -1,7 +1,7 @@
 <nav class="ui fluid menu">
     <a class="item" href="/">Home</a>
     <a class="item" href="/explore">Explore</a>
-    <a class="item" href="/user/decks">My Decks</a>
+    <a class="item" href="/user#decks">My Decks</a>
 
     <div class="right menu">
         <div class="item">
