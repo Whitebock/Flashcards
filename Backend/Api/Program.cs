@@ -5,9 +5,11 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
+builder.Services.Configure<JsonLinesEventStoreOptions>(options => {
+    options.FilePath = "events.jsonl";
+});
 builder.Services.AddSingleton<IEventBus, InMemoryEventBus>();
-builder.Services.AddSingleton<IEventStore, InMemoryEventStore>();
+builder.Services.AddSingleton<IEventStore, JsonLinesEventStore>();
 builder.Services.AddSingleton<ICommandBus, InMemoryCommandBus>();
 builder.Services.AddCommandHandlers();
 builder.Services.AddEventHandlers();
@@ -25,9 +27,26 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-var commandBus = app.Services.GetRequiredService<ICommandBus>();
-foreach (var command in TestData.GetTestCommands()) commandBus.Send(command);
+// Load Application Data.
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+var eventStore = app.Services.GetRequiredService<IEventStore>();
+var eventBus = (InMemoryEventBus)app.Services.GetRequiredService<IEventBus>();
 
+logger.LogInformation("Rehydrating Projections");
+var eventCount = 0;
+await foreach (var @event in eventStore.GetEventsAsync())
+{
+    eventBus.ApplyToHandlers(@event);
+    eventCount++;
+}
+logger.LogInformation("Total events rehydrated: {EventCount}", eventCount);
+
+if(app.Environment.IsDevelopment() && eventCount == 0) {
+    var commandBus = app.Services.GetRequiredService<ICommandBus>();
+    await commandBus.SendAsync(TestData.GetTestCommands().ToArray());
+}
+
+// Set up HTTP Request Pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

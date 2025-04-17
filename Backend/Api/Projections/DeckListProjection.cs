@@ -7,6 +7,7 @@ public class DeckListProjection(CardProjection _cardProjection) :
     IEventHandler<DeckCreated>,
     IEventHandler<DeckUpdated>,
     IEventHandler<DeckDeleted>,
+    IEventHandler<CardCreated>,
     IEventHandler<CardStatusChanged>
 {
     public record DeckStatDto(int NotSeen = 0, int Correct = 0, int Incorrect = 0) {
@@ -43,9 +44,19 @@ public class DeckListProjection(CardProjection _cardProjection) :
     public List<DeckDto> GetAllDecks() => _decks;
     public DeckDto GetDeck(Guid deckId) => _decks.First(d => d.Id.Equals(deckId));
 
+    public void Handle(CardCreated @event)
+    {
+        var deckId = _cardProjection.GetDeckForCard(@event.CardId);
+        UpdateDeckStats(deckId);
+    }
+
     public void Handle(CardStatusChanged @event)
     {
         var deckId = _cardProjection.GetDeckForCard(@event.CardId);
+        UpdateDeckStats(deckId);
+    }
+
+    private void UpdateDeckStats(Guid deckId) {
         var deck = _decks.First(deck => deck.Id.Equals(deckId));
         var cards = _cardProjection.GetCardsForDeck(deckId);
         deck.Stats = new DeckStatDto() {

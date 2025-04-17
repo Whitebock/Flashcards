@@ -15,21 +15,21 @@ public class CardController(ICommandBus commandBus) : ControllerBase
     public record CardStatusModel(string Choice);
     
     [HttpPost]
-    public IActionResult CreateCard([FromBody] CardAddModel model)
+    public async Task<IActionResult> CreateCardAsync([FromBody] CardAddModel model)
     {
-        commandBus.Send(new CreateCardCommand(model.DeckId, model.Front, model.Back));
+        await commandBus.SendAsync(new CreateCardCommand(model.DeckId, model.Front, model.Back));
         return Ok();
     }
 
     [HttpPut("{cardId:guid}")]
-    public IActionResult UpdateCard([FromRoute] Guid cardId, [FromBody] CardUpdateModel model, [FromServices] CardProjection cardProjection)
+    public async Task<IActionResult> UpdateCardAsync([FromRoute] Guid cardId, [FromBody] CardUpdateModel model, [FromServices] CardProjection cardProjection)
     {
-        commandBus.Send(new UpdateCardCommand(cardId, model.Front, model.Back));
+        await commandBus.SendAsync(new UpdateCardCommand(cardId, model.Front, model.Back));
         return Ok();
     }
 
     [HttpPatch("{cardId:guid}")]
-    public IActionResult ChangeCardStatus([FromRoute] Guid cardId, [FromBody] CardStatusModel model)
+    public async Task<IActionResult> ChangeCardStatusAsync([FromRoute] Guid cardId, [FromBody] CardStatusModel model)
     {
         var status = model.Choice switch
         {
@@ -39,14 +39,14 @@ public class CardController(ICommandBus commandBus) : ControllerBase
             _ => CardStatus.Again
         };
 
-        commandBus.Send(new ChangeCardStatus(cardId, status));
+        await commandBus.SendAsync(new ChangeCardStatus(cardId, status));
         return Ok();
     }
 
     [HttpDelete("{cardId:guid}")]
-    public IActionResult DeleteCard([FromRoute] Guid cardId)
+    public async Task<IActionResult> DeleteCardAsync([FromRoute] Guid cardId)
     {
-        commandBus.Send(new DeleteCardCommand(cardId));
+        await commandBus.SendAsync(new DeleteCardCommand(cardId));
         return Ok();
     }
 }

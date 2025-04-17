@@ -2,7 +2,7 @@ namespace Flashcards.CQRS;
 
 public interface ICommandHandler<TCommand> : ICommandHandler where TCommand : ICommand
 {
-    void Handle(TCommand command);
+    Task HandleAsync(TCommand command);
 }
 
 public interface ICommandHandler {}

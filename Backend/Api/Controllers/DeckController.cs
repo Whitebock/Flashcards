@@ -63,23 +63,23 @@ public class DeckController(
     }
 
     [HttpPost]
-    public IActionResult CreateDeck([FromBody] DeckUpdateModel model)
+    public async Task<IActionResult> CreateDeckAsync([FromBody] DeckUpdateModel model)
     {
-        commandBus.Send(new CreateDeckCommand(model.Name, model.Description));
+        await commandBus.SendAsync(new CreateDeckCommand(model.Name, model.Description));
         return Ok();
     }
 
     [HttpPut("{deckId:guid}")]
-    public IActionResult UpdateDeck([FromRoute] Guid deckId, [FromBody] DeckUpdateModel model)
+    public async Task<IActionResult> UpdateDeckAsync([FromRoute] Guid deckId, [FromBody] DeckUpdateModel model)
     {
-        commandBus.Send(new UpdateDeckCommand(deckId, model.Name, model.Description));
+        await commandBus.SendAsync(new UpdateDeckCommand(deckId, model.Name, model.Description));
         return Ok();
     }
 
     [HttpDelete("{deckId:guid}")]
-    public IActionResult DeleteDeck([FromRoute] Guid deckId)
+    public async Task<IActionResult> DeleteDeckAsync([FromRoute] Guid deckId)
     {
-        commandBus.Send(new DeleteDeckCommand(deckId));
+        await commandBus.SendAsync(new DeleteDeckCommand(deckId));
         return Ok();
     }
 }

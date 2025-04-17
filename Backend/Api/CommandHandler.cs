@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Flashcards.Commands;
 using Flashcards.CQRS;
 using Flashcards.Events;
@@ -13,39 +14,38 @@ public class CommandHandler(IEventBus _eventBus) :
     ICommandHandler<UpdateDeckCommand>,
     ICommandHandler<DeleteDeckCommand>
 {
-    public void Handle(CreateDeckCommand command)
+    public async Task HandleAsync(CreateDeckCommand command)
     {
-        _eventBus.Publish(new DeckCreated(command.DeckId, command.Name, command.Description));
+        await _eventBus.PublishAsync(new DeckCreated(command.DeckId, command.Name, command.Description));
     }
 
-    public void Handle(CreateCardCommand command)
+    public async Task HandleAsync(CreateCardCommand command)
     {
-        _eventBus.Publish(new CardCreated(command.CardId, command.DeckId, command.Front, command.Back));
-        _eventBus.Publish(new CardStatusChanged(command.CardId, CardStatus.NotSeen));
+        await _eventBus.PublishAsync(new CardCreated(command.CardId, command.DeckId, command.Front, command.Back));
     }
 
-    public void Handle(UpdateCardCommand command)
+    public async Task HandleAsync(UpdateCardCommand command)
     {
-        _eventBus.Publish(new CardUpdated(command.CardId, command.Front, command.Back));
+        await _eventBus.PublishAsync(new CardUpdated(command.CardId, command.Front, command.Back));
     }
 
-    public void Handle(DeleteCardCommand command)
+    public async Task HandleAsync(DeleteCardCommand command)
     {
-        _eventBus.Publish(new CardDeleted(command.CardId));
+        await _eventBus.PublishAsync(new CardDeleted(command.CardId));
     }
 
-    public void Handle(ChangeCardStatus command)
+    public async Task HandleAsync(ChangeCardStatus command)
     {
-        _eventBus.Publish(new CardStatusChanged(command.CardId, command.Status));
+        await _eventBus.PublishAsync(new CardStatusChanged(command.CardId, command.Status));
     }
 
-    public void Handle(UpdateDeckCommand command)
+    public async Task HandleAsync(UpdateDeckCommand command)
     {
-        _eventBus.Publish(new DeckUpdated(command.DeckId, command.Name, command.Description));
+        await _eventBus.PublishAsync(new DeckUpdated(command.DeckId, command.Name, command.Description));
     }
 
-    public void Handle(DeleteDeckCommand command)
+    public async Task HandleAsync(DeleteDeckCommand command)
     {
-        _eventBus.Publish(new DeckDeleted(command.DeckId));
+        await _eventBus.PublishAsync(new DeckDeleted(command.DeckId));
     }
 }

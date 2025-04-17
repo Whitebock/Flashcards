@@ -2,6 +2,6 @@ namespace Flashcards.CQRS;
 
 public interface IEventStore
 {
-    void Save(IEvent @event);
-    IEnumerable<IEvent> GetEvents();
+    Task SaveAsync(IEvent @event);
+    IAsyncEnumerable<IEvent> GetEventsAsync();
 }

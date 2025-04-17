@@ -12,9 +12,13 @@ public class InMemoryEventBus : IEventBus
         _eventStore = eventStore;
     }
 
-    public Task Publish(IEvent @event)
+    public async Task PublishAsync(IEvent @event)
     {
-        _eventStore.Save(@event);
+        await _eventStore.SaveAsync(@event);
+        ApplyToHandlers(@event);
+    }
+
+    public void ApplyToHandlers(IEvent @event) {
         var handlerType = typeof(IEventHandler<>).MakeGenericType(@event.GetType());
         var handlers = _eventHandlers.Where(handlerType.IsInstanceOfType);
         foreach (var handler in handlers)
@@ -24,7 +28,5 @@ public class InMemoryEventBus : IEventBus
 
             method.Invoke(handler, [@event]);
         }
-        
-        return Task.CompletedTask;
     }
 }
