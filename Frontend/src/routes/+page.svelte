@@ -17,6 +17,14 @@
     Want to make studying more fun? Collaborate with your friends and challenge each other to learn faster and better!
 </div>
 
+{#if data.decks.length == 0}
+<div class="ui placeholder segment">
+    <div class="ui icon header">
+        <i class="folder open outline icon"></i>
+        No decks have been created yet.
+    </div>
+</div>
+{:else}
 <div class="ui segment">
     <h3 class="ui header">
         <i class="chartline icon"></i>
@@ -40,7 +48,7 @@
         {/each}
     </div>
 </div>
-
+{/if}
 
 <script lang="ts">
     import Deck from '$lib/Deck.svelte';

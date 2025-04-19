@@ -14,6 +14,7 @@ export interface DeckStats {
 export interface Deck {
     id: string;
     friendlyId: string;
+    creator: string;
     name: string;
     description: string;
     stats: DeckStats;

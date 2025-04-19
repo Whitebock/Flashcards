@@ -22,6 +22,7 @@
 		"vite": "^6.2.5"
 	},
 	"dependencies": {
-		"fomantic-ui-css": "^2.9.4"
+		"fomantic-ui-css": "^2.9.4",
+		"openid-client": "^6.4.2"
 	}
 }

@@ -6,17 +6,17 @@
     </div>
     {#if editable}
     <div class="ui two buttons">
-        <a class="ui button" href="/user/{deck.friendlyId}/edit">
+        <a class="ui button" href="/{deck.creator}/{deck.friendlyId}/edit">
             <i class="edit icon"></i>
             Edit
         </a>
-        <a class="ui button" href="/user/{deck.friendlyId}/study">
+        <a class="ui button" href="/{deck.creator}/{deck.friendlyId}/study">
             <i class="graduation cap icon"></i>
             Study
         </a>
     </div>
     {:else}
-    <a class="ui button" href="/user/{deck.friendlyId}/study">
+    <a class="ui button" href="/{deck.creator}/{deck.friendlyId}/study">
         <i class="graduation cap icon"></i>
         Study
     </a>

@@ -2,7 +2,7 @@
 
 <div class="ui segment">
     <h3 class="ui header">
-        <div class="content">Decks</div>
+        <div class="content">Decks by {data.user?.username}</div>
     </h3>
     <div class="ui four cards">
         {#each data.decks as deck}

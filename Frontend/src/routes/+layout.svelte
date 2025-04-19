@@ -1,7 +1,9 @@
 <nav class="ui fluid menu">
     <a class="item" href="/">Home</a>
     <a class="item" href="/explore">Explore</a>
-    <a class="item" href="/user#decks">My Decks</a>
+    {#if data.user}
+    <a class="item" href="/{data.user.username}#decks">My Decks</a>
+    {/if}
 
     <div class="right menu">
         <div class="item">
@@ -10,10 +12,18 @@
             <i class="search link icon"></i>
             </div>
         </div>
-        <a class="ui item" href="/login">
+        {#if data.user}
+        <div class="item">{data.user?.username}</div>
+        <a class="ui item" href="/auth/logout">
+            <i class="sign out icon"></i>
+            Logout
+        </a>
+        {:else}
+        <a class="ui item" href="/auth/login">
             <i class="sign in icon"></i>
             Login
         </a>
+        {/if}
     </div>
 </nav>
 
@@ -23,5 +33,5 @@
 
 <script>
     import "fomantic-ui-css/semantic.min.css";
-    let { children } = $props();
+    let { children, data } = $props();
 </script>
