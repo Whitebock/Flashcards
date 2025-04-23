@@ -16,7 +16,7 @@ public class DeckListProjection(CardProjection _cardProjection) :
     public record DeckDto(Guid Id) {
         public required string Name { get; set; }
         public required string Description { get; set; }
-        public string FriendlyId => Name.ToLower().Replace(' ', '_');
+        public string EncodedName => Name.ToLower().Replace(' ', '_');
         public DeckStatDto Stats { get; set; } = new();
     }
     public List<DeckDto> _decks = [];

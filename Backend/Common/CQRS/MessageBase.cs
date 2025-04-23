@@ -1,11 +1,9 @@
-using Flashcards.CQRS;
-
 namespace Flashcards.CQRS;
 
 public abstract record MessageBase : IMessage
 {
-    public Guid MessageId { get; } = Guid.NewGuid();
     public DateTime Timestamp { get; } = DateTime.UtcNow;
+    public required Guid Creator { get; set; }
 }
 
 public abstract record CommandBase : MessageBase, ICommand;

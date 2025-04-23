@@ -1,7 +1,7 @@
 {
-	"name": "client",
+	"name": "flashcards_frontend",
 	"private": true,
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -23,6 +23,7 @@
 	},
 	"dependencies": {
 		"fomantic-ui-css": "^2.9.4",
-		"openid-client": "^6.4.2"
+		"openid-client": "^6.4.2",
+		"uuid": "^11.1.0"
 	}
 }

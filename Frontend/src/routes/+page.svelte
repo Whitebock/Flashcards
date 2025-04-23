@@ -17,7 +17,7 @@
     Want to make studying more fun? Collaborate with your friends and challenge each other to learn faster and better!
 </div>
 
-{#if data.decks.length == 0}
+{#if data.recent.length == 0}
 <div class="ui placeholder segment">
     <div class="ui icon header">
         <i class="folder open outline icon"></i>
@@ -31,7 +31,7 @@
         <div class="content">Popular Decks</div>
     </h3>
     <div class="ui four cards">
-        {#each data.decks as deck}
+        {#each data.popular as deck}
             <Deck deck={deck}/>
         {/each}
     </div>
@@ -43,7 +43,7 @@
         <div class="content">New Decks</div>
     </h3>
     <div class="ui four cards">
-        {#each data.decks as deck}
+        {#each data.recent as deck}
             <Deck deck={deck}/>
         {/each}
     </div>

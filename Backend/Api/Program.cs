@@ -1,18 +1,27 @@
 using Flashcards;
 using Flashcards.Api;
+using Flashcards.Common.UserManagement;
 using Flashcards.CQRS;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Logging;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<JsonLinesEventStoreOptions>(options => {
-    options.FilePath = "events.jsonl";
-});
-builder.Services.AddSingleton<IEventBus, InMemoryEventBus>();
-builder.Services.AddSingleton<IEventStore, JsonLinesEventStore>();
-builder.Services.AddSingleton<ICommandBus, InMemoryCommandBus>();
-builder.Services.AddCommandHandlers();
-builder.Services.AddEventHandlers();
+builder.Configuration.AddIniFile("appsettings.ini");
+
+builder.Services
+    .AddSingleton<IEventBus, InMemoryEventBus>()
+    .AddSingleton<IEventStore, JsonLinesEventStore>()
+    .Configure<JsonLinesEventStoreOptions>(options => { options.FilePath = "events.jsonl"; })
+    .AddSingleton<ICommandBus, InMemoryCommandBus>()
+    .AddCommandHandlers()
+    .AddEventHandlers()
+    .Configure<Auth0UserStoreOptions>(options => {
+        options.Token = builder.Configuration["Auth0:Token"];
+        options.Endpoint = new Uri(builder.Configuration["Auth0:Endpoint"]!);
+    })
+    .AddSingleton<IUserStore, Auth0UserStore>();
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowAllOrigins", builder =>  builder
@@ -24,6 +33,18 @@ builder.Services.AddCors(options => {
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>  {
+        options.Authority = builder.Configuration["OIDC:Authority"];
+        options.Audience = builder.Configuration["OIDC:Audience"];
+    });
+builder.Services.AddAuthorization(options => {
+    options.AddPolicy("HasUser", policy => {
+        policy.RequireAuthenticatedUser();
+    });
+});
 
 var app = builder.Build();
 
@@ -47,8 +68,12 @@ if(app.Environment.IsDevelopment() && eventCount == 0) {
 }
 
 // Set up HTTP Request Pipeline.
+app.UseAuthentication();
+app.UseAuthorization();
 if (app.Environment.IsDevelopment())
 {
+    IdentityModelEventSource.ShowPII = true;
+    IdentityModelEventSource.LogCompleteSecurityArtifact = true;
     app.MapOpenApi();
     app.MapScalarApiReference("/", options => {
         options
@@ -59,7 +84,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 app.UseCors("AllowAllOrigins");
-app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

@@ -1,13 +1,15 @@
 import { getAuthConfig } from '$lib/server/auth';
+import { getSession } from '$lib/server/session';
 import type { Handle } from '@sveltejs/kit';
-import { fetchUserInfo, skipSubjectCheck } from 'openid-client';
+import { fetchUserInfo } from 'openid-client';
 
 export const handle: Handle = async ({ event, resolve }) => {
-    const config = await getAuthConfig();
-    const session = event.cookies.get('session');
     
+    let session = await getSession(event.cookies);
     if (session) {
-        let userInfo = await fetchUserInfo(config, session, skipSubjectCheck);
+        const config = await getAuthConfig();
+        let {access_token, id_token} = session;
+        let userInfo = await fetchUserInfo(config, access_token, id_token.sub);
         
         event.locals.user = {
             username: userInfo.preferred_username ?? userInfo.nickname!,
@@ -17,3 +19,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 
     return await resolve(event);
 };
+
+export async function handleFetch({ event, request, fetch }) {
+    let session = await getSession(event.cookies);
+    if(session) {
+        request.headers.set('Authorization', `Bearer ${session.access_token}`);
+    }
+	return await fetch(request);
+}

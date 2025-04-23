@@ -1,5 +1,16 @@
-import { API_URL } from '$lib/types';
-import type { Actions } from './$types';
+import { API_URL, type Card } from '$lib/types';
+import type { PageServerLoad, Actions } from './$types';
+
+export const load: PageServerLoad = async ({ fetch, params, parent }) => {
+    const deck = (await parent()).deck;
+    const res = await fetch(`${API_URL}/decks/${deck.id}/study`);
+    const result: {
+        card: Card,
+        left: number
+    } = await res.json();
+
+    return result;
+};
 
 export const actions = {
 	default: async ({request}) => {

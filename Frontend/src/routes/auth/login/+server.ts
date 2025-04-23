@@ -15,6 +15,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
         scope: "openid profile email",
         code_challenge,
         code_challenge_method: 'S256',
+        audience: "flashcards_api"
     };
 
     if (!config.serverMetadata().supportsPKCE()) {
