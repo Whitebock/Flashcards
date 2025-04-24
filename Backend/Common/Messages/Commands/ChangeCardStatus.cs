@@ -1,5 +1,3 @@
-using Flashcards.CQRS;
-
-namespace Flashcards.Commands;
+namespace Flashcards.Common.Messages.Commands;
 
 public record ChangeCardStatus(Guid CardId, CardStatus Status) : CommandBase;

@@ -1,4 +1,4 @@
-namespace Flashcards.CQRS;
+namespace Flashcards.Common.Messages;
 
 public interface IEvent : IMessage
 {

@@ -1,5 +1,5 @@
-using Flashcards.Commands;
-using Flashcards.CQRS;
+using Flashcards.Common.Messages;
+using Flashcards.Common.Messages.Commands;
 
 namespace Flashcards.Api;
 

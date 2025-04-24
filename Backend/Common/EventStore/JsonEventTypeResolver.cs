@@ -2,7 +2,9 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
-using Flashcards.CQRS;
+using Flashcards.Common.Messages;
+
+namespace Flashcards.Common.EventStore;
 
 internal class JsonEventTypeResolver() : DefaultJsonTypeInfoResolver
 {

@@ -1,5 +1,3 @@
-using Flashcards.CQRS;
-
-namespace Flashcards.Commands;
+namespace Flashcards.Common.Messages.Commands;
 
 public record DeleteDeckCommand(Guid DeckId) : CommandBase;

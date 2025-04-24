@@ -1,7 +1,8 @@
-using Flashcards;
 using Flashcards.Api;
+using Flashcards.Common;
+using Flashcards.Common.EventStore;
+using Flashcards.Common.ServiceBus;
 using Flashcards.Common.UserManagement;
-using Flashcards.CQRS;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Logging;
 using Scalar.AspNetCore;

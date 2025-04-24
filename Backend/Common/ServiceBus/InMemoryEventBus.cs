@@ -1,5 +1,7 @@
-using Flashcards.CQRS;
-namespace Flashcards;
+using Flashcards.Common.EventStore;
+using Flashcards.Common.Messages;
+
+namespace Flashcards.Common.ServiceBus;
 
 public class InMemoryEventBus : IEventBus
 {

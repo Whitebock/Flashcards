@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Api.Controllers;
+namespace Flashcards.Api.Controllers;
 
 public static class ClaimsPrincipalExtensions
 {

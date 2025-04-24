@@ -1,7 +1,7 @@
-using System.Threading.Tasks;
-using Flashcards.Commands;
-using Flashcards.CQRS;
-using Flashcards.Events;
+using Flashcards.Common.Messages;
+using Flashcards.Common.Messages.Commands;
+using Flashcards.Common.Messages.Events;
+using Flashcards.Common.ServiceBus;
 
 namespace Flashcards.Api;
 

@@ -1,5 +1,5 @@
-using Flashcards.CQRS;
-using Flashcards.Events;
+using Flashcards.Common.Messages;
+using Flashcards.Common.Messages.Events;
 
 namespace Flashcards.Api.Projections;
 

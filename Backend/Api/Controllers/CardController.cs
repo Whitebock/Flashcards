@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Flashcards.Commands;
-using Flashcards.CQRS;
-using Flashcards.Api.Projections;
 using Microsoft.AspNetCore.Authorization;
-using Api.Controllers;
+using Flashcards.Common.ServiceBus;
+using Flashcards.Common.Messages.Commands;
+using Flashcards.Common.Messages;
 
 namespace Flashcards.Api.Controllers;
 

@@ -1,4 +1,4 @@
-namespace Flashcards;
+namespace Flashcards.Common.EventStore;
 
 public class JsonLinesEventStoreOptions
 {

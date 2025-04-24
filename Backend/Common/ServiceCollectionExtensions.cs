@@ -1,8 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using Scrutor;
-using Flashcards.CQRS;
+using Flashcards.Common.Messages;
 
-namespace Flashcards;
+namespace Flashcards.Common;
 
 public static class ServiceCollectionExtensions
 {

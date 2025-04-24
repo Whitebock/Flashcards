@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Flashcards.Common.UserManagement;
 using Microsoft.AspNetCore.Mvc;
 

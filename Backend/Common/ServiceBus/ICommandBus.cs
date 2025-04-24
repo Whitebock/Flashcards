@@ -1,4 +1,6 @@
-namespace Flashcards.CQRS;
+using Flashcards.Common.Messages;
+
+namespace Flashcards.Common.ServiceBus;
 
 public interface ICommandBus
 {

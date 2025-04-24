@@ -1,6 +1,6 @@
-using Flashcards.CQRS;
+using Flashcards.Common.Messages;
 
-namespace Flashcards;
+namespace Flashcards.Common.ServiceBus;
 
 public class InMemoryCommandBus(IEnumerable<ICommandHandler> _commandHandlers) : ICommandBus
 {

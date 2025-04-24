@@ -1,7 +1,6 @@
-using Flashcards.CQRS;
-using System.Collections.Concurrent;
+using Flashcards.Common.Messages;
 
-namespace Flashcards;
+namespace Flashcards.Common.EventStore;
 
 public class InMemoryEventStore : IEventStore
 {

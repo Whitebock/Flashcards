@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Flashcards.CQRS;
+using Flashcards.Common.Messages;
 using Microsoft.Extensions.Options;
 
-namespace Flashcards;
+namespace Flashcards.Common.EventStore;
 
 public class JsonLinesEventStore(IOptions<JsonLinesEventStoreOptions> options) : IEventStore
 {

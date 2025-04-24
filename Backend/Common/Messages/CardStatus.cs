@@ -1,4 +1,4 @@
-namespace Flashcards;
+namespace Flashcards.Common.Messages;
 
 public enum CardStatus {
     NotSeen,
