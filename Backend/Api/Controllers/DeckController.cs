@@ -5,6 +5,7 @@ using Flashcards.Common.UserManagement;
 using Flashcards.Common.ServiceBus;
 using Flashcards.Common.Messages;
 using Flashcards.Common.Messages.Commands;
+using Flashcards.Api.Models;
 
 namespace Flashcards.Api.Controllers;
 
@@ -17,40 +18,117 @@ public class DeckController(
     ICommandBus commandBus
     ) : ControllerBase
 {
-
     [HttpGet]
     [AllowAnonymous]
-    [Route("reccomended")]
-    public IActionResult GetReccomendedDecks()
-    {
-        var decks = deckListProjection.GetAllDecks();
-        
-        return Ok(new {
-            popular = decks,
-            recent = decks
-        });
-    }
-
-    [HttpGet]
-    public IActionResult GetAllDecks()
+    [EndpointSummary("All Decks")]
+    public ActionResult<IEnumerable<Deck>> GetAllDecks()
     {
         var decks = deckListProjection.GetAllDecks();
         return Ok(decks);
     }
 
-    [HttpGet("search")]
-    public async Task<IActionResult> SearchDecksAsync([FromQuery] string username, [FromQuery] string deckname, [FromServices] IUserStore userStore)
+    public class ReccomendedDecksResponse()
     {
-        var user = await userStore.GetByUsername(username);
-        var deck = deckListProjection.GetAllDecks()
-            //.Where(d => d.Creator == user.Id)
-            .Where(d => d.EncodedName.Equals(deckname))
-            .FirstOrDefault();
+        public required IEnumerable<Deck> Popular { get; init; }
+        public required IEnumerable<Deck> Recent { get; init; }
+    };
+    [HttpGet]
+    [AllowAnonymous]
+    [Route("recommended")]
+    [EndpointSummary("Recommended Decks")]
+    [EndpointDescription("Returns the most popular and recently created decks.")]
+    public ActionResult<ReccomendedDecksResponse> GetRecommendedDecks()
+    {
+        var decks = deckListProjection.GetAllDecks();
+        
+        return Ok(new ReccomendedDecksResponse() {
+            Popular = decks,
+            Recent = decks,
+        });
+    }
+
+    [HttpGet("search")]
+    [AllowAnonymous]
+    [EndpointSummary("Search Decks")]
+    public async Task<ActionResult<IEnumerable<Deck>>> SearchDecksAsync([FromQuery] string? username, [FromQuery] string? deckname, [FromServices] IUserStore userStore)
+    {
+        IEnumerable<Deck> decks = deckListProjection.GetAllDecks();
+        if(username != null) {
+            var user = await userStore.GetByUsername(username);
+            decks = decks.Where(d => d.CreatorId.Equals(user.Id));
+        }
+        if(deckname != null) {
+            decks = decks.Where(d => d.EncodedName.Equals(deckname));
+        }
+        return Ok(decks);
+    }
+
+    [HttpGet("{deckId:guid}")]
+    [AllowAnonymous]
+    [EndpointSummary("Deck Info")]
+    public ActionResult<Deck> GetDeck([FromRoute] Guid deckId)
+    {
+        var deck = deckListProjection.GetDeck(deckId);
         return Ok(deck);
     }
 
+
+    [HttpGet("{deckId:guid}/cards")]
+    [EndpointSummary("Cards of a Deck")]
+    public ActionResult<IEnumerable<Card>> GetCardsForDeck([FromRoute] Guid deckId)
+    {
+        var cards = cardProjection.GetCardsForDeck(deckId)
+            .Select(card => new Card() {
+                Id = card.Id,
+                Front = card.Front,
+                Back = card.Back,
+                Status = card.Status,
+                DeckId = deckId
+            });
+        return Ok(cards);
+    }
+    
+    [HttpPost]
+    [EndpointSummary("Create Deck")]
+    public async Task<IActionResult> CreateDeckAsync([FromBody] Deck deck)
+    {
+        if(deck.Name == null || deck.Description == null) {
+            return BadRequest();
+        }
+        await commandBus.SendAsync(new CreateDeckCommand(deck.Name, deck.Description) 
+        {
+             Creator = User.GetAppId()
+        });
+        return Ok();
+    }
+
+    [HttpPut("{deckId:guid}")]
+    [EndpointSummary("Update Deck")]
+    public async Task<IActionResult> UpdateDeckAsync([FromRoute] Guid deckId, [FromBody] Deck deck)
+    {
+        await commandBus.SendAsync(new UpdateDeckCommand(deckId, deck.Name, deck.Description) 
+        {
+             Creator = User.GetAppId()
+        });
+        return Ok();
+    }
+
+    [HttpDelete("{deckId:guid}")]
+    [EndpointSummary("Delete Deck")]
+    public async Task<IActionResult> DeleteDeckAsync([FromRoute] Guid deckId)
+    {
+        await commandBus.SendAsync(new DeleteDeckCommand(deckId) 
+        {
+             Creator = User.GetAppId()
+        });
+        return Ok();
+    }
+
+    public record StudyDeckResponse(Card card, int left);
+
     [HttpGet("{deckId:guid}/study")]
-    public IActionResult GetStudyCard([FromRoute] Guid deckId)
+    [EndpointSummary("Study a Deck")]
+    public ActionResult<StudyDeckResponse> GetStudyCard([FromRoute] Guid deckId)
     {
         var cards = cardProjection
             .GetCardsForDeck(deckId)
@@ -60,52 +138,13 @@ public class DeckController(
         var card = cards.FirstOrDefault();
         var left = cards.Count();
 
-        return Ok(new { card, left });
-    }
+        if(card== null) return NotFound();
 
-    [HttpGet("{deckId:guid}")]
-    public IActionResult GetDeck([FromRoute] Guid deckId)
-    {
-        var deck = deckListProjection.GetDeck(deckId);
-        return Ok(deck);
-    }
-
-    [HttpGet("{deckId:guid}/cards")]
-    public IActionResult GetCardsForDeck([FromRoute] Guid deckId)
-    {
-        var cards = cardProjection.GetCardsForDeck(deckId);
-        return Ok(cards);
-    }
-
-    public record DeckUpdateModel(string Name, string Description);
-    
-    [HttpPost]
-    public async Task<IActionResult> CreateDeckAsync([FromBody] DeckUpdateModel model)
-    {
-        await commandBus.SendAsync(new CreateDeckCommand(model.Name, model.Description) 
-        {
-             Creator = User.GetAppId()
-        });
-        return Ok();
-    }
-
-    [HttpPut("{deckId:guid}")]
-    public async Task<IActionResult> UpdateDeckAsync([FromRoute] Guid deckId, [FromBody] DeckUpdateModel model)
-    {
-        await commandBus.SendAsync(new UpdateDeckCommand(deckId, model.Name, model.Description) 
-        {
-             Creator = User.GetAppId()
-        });
-        return Ok();
-    }
-
-    [HttpDelete("{deckId:guid}")]
-    public async Task<IActionResult> DeleteDeckAsync([FromRoute] Guid deckId)
-    {
-        await commandBus.SendAsync(new DeleteDeckCommand(deckId) 
-        {
-             Creator = User.GetAppId()
-        });
-        return Ok();
+        return Ok(new StudyDeckResponse(new Card() {
+            Id = card.Id,
+            Front = card.Front,
+            Back = card.Back,
+            Status = card.Status
+        }, left));
     }
 }

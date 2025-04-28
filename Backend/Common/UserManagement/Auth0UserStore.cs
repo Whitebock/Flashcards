@@ -13,9 +13,16 @@ public class Auth0UserStore : IUserStore
         _apiClient = new ManagementApiClient(options.Value.Token, options.Value.Endpoint);
     }
 
-    public Task<IUser> GetById(Guid userId)
+    public async Task<IUser> GetById(Guid userId)
     {
-        throw new NotImplementedException();
+        var users = await _apiClient.Users.GetAllAsync(new GetUsersRequest() {
+            Query = $"app_metadata.id: {userId}"
+        });
+        if (users.Count == 0)
+        {
+            throw new InvalidOperationException($"Expected exactly one user with ID '{userId}', but found {users.Count}.");
+        }
+        return ConvertToUser(users.First());
     }
 
     public async Task<IUser> GetByUsername(string username)
@@ -27,10 +34,16 @@ public class Auth0UserStore : IUserStore
         {
             throw new InvalidOperationException($"Expected exactly one user with username '{username}', but found {users.Count}.");
         }
-        var auth0User = users.First();
-        return new User() {
+        return ConvertToUser(users.First());
+    }
+
+    private static IUser ConvertToUser(Auth0.ManagementApi.Models.User auth0User)
+    {
+        return new User()
+        {
             Id = auth0User.AppMetadata.id,
-            Username = auth0User.UserName
+            Username = auth0User.UserName,
+            Picture = auth0User.Picture
         };
     }
 }

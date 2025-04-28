@@ -11,11 +11,10 @@
     </div>
     <div class="disabled field">
         <label for="url">URL</label>
-        <input type="text" id="url" value={"/user/" + deck.name.toLowerCase().replaceAll(" ", "_")}>
+        <input type="text" id="url" value={`/${data.user?.username}/${deck.encodedName}`}>
     </div>
     <button class="ui button" formaction="?/delete">Delete</button>
     <button class="ui primary button" formaction="?/update">Save</button>
-    <input type="hidden" name="deckId" value={data.deck.id}/>
 </form>
 
 <script lang="ts">

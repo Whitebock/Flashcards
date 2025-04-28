@@ -44,14 +44,14 @@
 
 <script lang="ts">
     import { enhance } from '$app/forms';
-    import type { Card } from '$lib/types';
+    import type { Card } from '$lib/api/schema';
 
     let { data } = $props();
     let selected = $state<Card>()!;
 
     const emptyCard: Card = {front: "", back: "", id: ""}
     if(data.cards.length > 0) {
-        selected = data.cards[0];
+        selected = data.cards[0]!;
     } else {
         selected = emptyCard;
     }

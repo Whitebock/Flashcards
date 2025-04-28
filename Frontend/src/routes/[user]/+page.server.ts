@@ -1,10 +1,21 @@
-import { API_URL, type Deck } from '$lib/types';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch, params }) => {
-    const res = await fetch(`${API_URL}/users/${params.user}`);
-    const user = await res.json();
-    console.log(user);
+export const load: PageServerLoad = async ({ params, locals }) => {
+    const { error: apiError, data: profile } = await locals.api.GET(`/users/{username}`, {params: {path: {
+        username: params.user
+    }}});
 
-    return { user };
+    if(apiError) {
+        console.error(apiError);
+        error(500, "Unable to fetch user");
+    }
+
+    const { data: decks } = await locals.api.GET('/decks/search', {params: {
+        query: {
+            username: profile.username
+        }
+    }})
+
+    return { profile, decks };
 };

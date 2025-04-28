@@ -2,7 +2,7 @@
     <a class="item" href="/">Home</a>
     <a class="item" href="/explore">Explore</a>
     {#if data.user}
-    <a class="item" href="/{data.user.username}#decks">My Decks</a>
+    <a class="item" href="/{data.user.username}">My Decks</a>
     {/if}
 
     <div class="right menu">

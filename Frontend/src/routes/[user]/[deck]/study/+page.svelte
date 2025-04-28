@@ -2,8 +2,8 @@
 	<title>Flashcard Studying</title>
 </svelte:head>
 <div class="ui container flashcard-container">
-    <div class="ui small progress" data-percent={100 - (data.left / data.deck.stats.total) * 100}>
-        <div class="grey bar" style="width: {100 - (data.left / data.deck.stats.total) * 100}%;"></div>
+    <div class="ui small progress" data-percent={100 - (data.left / data.deck.statistics!.total) * 100}>
+        <div class="grey bar" style="width: {100 - (data.left / data.deck.statistics!.total) * 100}%;"></div>
         <div class="label">{data.left} Cards left</div>
     </div>
     <form method="POST" data-sveltekit-replacestate use:enhance>
@@ -24,9 +24,9 @@
             </button>
         </div>
         <div class="ui three buttons">
-            <button class="ui button" name="choice" value="again">Again</button>
-            <button class="ui button" name="choice" value="good">Good</button>
-            <button class="ui button" name="choice" value="easy">Easy</button>
+            <button class="ui button" name="choice" value="Again">Again</button>
+            <button class="ui button" name="choice" value="Good">Good</button>
+            <button class="ui button" name="choice" value="Easy">Easy</button>
         </div>
         <input type="hidden" name="cardId" value={data.card.id} />
     </form>
@@ -35,7 +35,7 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
     let { data, form } = $props();
-
+    
     let showAnswer = $derived(form?.showAnswer == true);
 </script>
 

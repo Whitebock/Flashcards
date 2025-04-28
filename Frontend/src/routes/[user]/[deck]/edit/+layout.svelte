@@ -1,7 +1,7 @@
 <h2 class="ui header">Editing Deck "{data.deck.name}"</h2>
 <div class="ui top attached tabular menu">
-    <a class="item {tab == "deck" ? "active" : ""}" href="/user/{data.deck.friendlyId}/edit">Deck Info</a>
-    <a class="item {tab == "cards" ? "active" : ""}" href="/user/{data.deck.friendlyId}/edit/cards">Cards</a>
+    <a class="item {tab == "deck" ? "active" : ""}" href="/{page.params.user}/{data.deck.encodedName}/edit">Deck Info</a>
+    <a class="item {tab == "cards" ? "active" : ""}" href="/{page.params.user}/{data.deck.encodedName}/edit/cards">Cards</a>
 </div>
 
 <div class="ui bottom attached active tab segment">

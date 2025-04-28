@@ -1,35 +1,33 @@
-import { API_URL, type Deck } from '$lib/types';
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { resolveRoute } from '$app/paths';
 
 export const actions = {
-    update: async ({request, route, params}) => {
+    update: async ({ request, route, params, locals }) => {
         let data = await request.formData();
-        const deckId = data.get("deckId");
+        let name = data.get("name")?.toString() ?? error(400);
+        let description = data.get("description")?.toString() ?? error(400);
 
-        await fetch(`${API_URL}/decks/${deckId}`, {
-            method: 'PUT',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                name: data.get("name"),
-                description: data.get("description")
-            })
+        await locals.api.PUT('/decks/{deckId}', {
+            params: {path: {deckId: params.deck}},
+            body: {
+                name: name,
+                description: description
+            }
         });
+        
         redirect(303, resolveRoute(route.id, {
             user: params.user,
-            deck: data.get("name")?.toString().toLowerCase().replaceAll(' ', '_')
+            deck: name.toLowerCase().replaceAll(' ', '_')
         }));
     },
-    delete: async ({request, params}) => {
-        let data = await request.formData();
-        const deckId = data.get("deckId");
+    delete: async ({ params, locals }) => {
 
-        await fetch(`${API_URL}/decks/${deckId}`, {
-            method: 'DELETE',
-            headers: { "Content-Type": "application/json" },
-        });
-        redirect(303, resolveRoute("/[user]#decks", {
+        await locals.api.DELETE('/decks/{deckId}', {params: {path: {
+            deckId: params.deck
+        }}});
+
+        redirect(303, resolveRoute("/[user]", {
             user: params.user
         }));
     },

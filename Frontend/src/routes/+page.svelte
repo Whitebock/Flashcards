@@ -31,7 +31,7 @@
         <div class="content">Popular Decks</div>
     </h3>
     <div class="ui four cards">
-        {#each data.popular as deck}
+        {#each data.popular! as deck}
             <Deck deck={deck}/>
         {/each}
     </div>
@@ -43,7 +43,7 @@
         <div class="content">New Decks</div>
     </h3>
     <div class="ui four cards">
-        {#each data.recent as deck}
+        {#each data.recent! as deck}
             <Deck deck={deck}/>
         {/each}
     </div>

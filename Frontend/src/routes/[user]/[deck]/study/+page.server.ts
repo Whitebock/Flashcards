@@ -1,19 +1,22 @@
-import { API_URL, type Card } from '$lib/types';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
+import type { NullableOfCardStatus } from '$lib/api/schema';
 
-export const load: PageServerLoad = async ({ fetch, params, parent }) => {
+export const load: PageServerLoad = async ({ parent, locals }) => {
     const deck = (await parent()).deck;
-    const res = await fetch(`${API_URL}/decks/${deck.id}/study`);
-    const result: {
-        card: Card,
-        left: number
-    } = await res.json();
+    const { data } = await locals.api.GET('/decks/{deckId}/study', {params: {
+        path: {
+            deckId: deck.id!
+        }
+    }});
 
-    return result;
+    if(!data) error(500);
+
+    return data;
 };
 
 export const actions = {
-	default: async ({request}) => {
+	default: async ({ request, locals }) => {
         let data = await request.formData();
 
         if (data.has("answer")) {
@@ -22,13 +25,14 @@ export const actions = {
             }
         }
         else if(data.has("choice")) {
-            const cardId = data.get("cardId");
-            await fetch(`${API_URL}/cards/${cardId}`, {
-                method: 'PATCH',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    choice: data.get("choice")
-                })
+            const cardId = data.get("cardId")?.toString() ?? error(400);
+            const choice = data.get("choice")?.toString() as NullableOfCardStatus|undefined ?? error(400);
+
+            await locals.api.PATCH('/cards/{cardId}', {
+                params: {path: {cardId: cardId}},
+                body: {
+                    status: choice
+                }
             })
         }
 	}

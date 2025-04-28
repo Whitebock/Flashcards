@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Flashcards.Common.ServiceBus;
 using Flashcards.Common.Messages.Commands;
 using Flashcards.Common.Messages;
+using Flashcards.Api.Models;
 
 namespace Flashcards.Api.Controllers;
 
@@ -10,15 +11,12 @@ namespace Flashcards.Api.Controllers;
 [Authorize("HasUser")]
 [Route("cards")]
 public class CardController(ICommandBus commandBus) : ControllerBase
-{
-    public record CardAddModel(Guid DeckId, string Front, string Back);
-    public record CardUpdateModel(string Front, string Back);
-    public record CardStatusModel(string Choice);
-    
+{    
     [HttpPost]
-    public async Task<IActionResult> CreateCardAsync([FromBody] CardAddModel model)
+    [EndpointSummary("Create Card")]
+    public async Task<IActionResult> CreateCardAsync([FromBody] Card card)
     {
-        await commandBus.SendAsync(new CreateCardCommand(model.DeckId, model.Front, model.Back) 
+        await commandBus.SendAsync(new CreateCardCommand(card.DeckId.Value, card.Front, card.Back) 
         {
              Creator = User.GetAppId()
         });
@@ -26,9 +24,10 @@ public class CardController(ICommandBus commandBus) : ControllerBase
     }
 
     [HttpPut("{cardId:guid}")]
-    public async Task<IActionResult> UpdateCardAsync([FromRoute] Guid cardId, [FromBody] CardUpdateModel model)
+    [EndpointSummary("Update Card")]
+    public async Task<IActionResult> UpdateCardAsync([FromRoute] Guid cardId, [FromBody] Card card)
     {
-        await commandBus.SendAsync(new UpdateCardCommand(cardId, model.Front, model.Back) 
+        await commandBus.SendAsync(new UpdateCardCommand(cardId, card.Front, card.Back) 
         {
              Creator = User.GetAppId()
         });
@@ -36,17 +35,10 @@ public class CardController(ICommandBus commandBus) : ControllerBase
     }
 
     [HttpPatch("{cardId:guid}")]
-    public async Task<IActionResult> ChangeCardStatusAsync([FromRoute] Guid cardId, [FromBody] CardStatusModel model)
+    [EndpointSummary("Change Card Status")]
+    public async Task<IActionResult> ChangeCardStatusAsync([FromRoute] Guid cardId, [FromBody] Card card)
     {
-        var status = model.Choice switch
-        {
-            "again" => CardStatus.Again,
-            "good" => CardStatus.Good,
-            "easy" => CardStatus.Easy,
-            _ => CardStatus.Again
-        };
-
-        await commandBus.SendAsync(new ChangeCardStatus(cardId, status) 
+        await commandBus.SendAsync(new ChangeCardStatus(cardId, card.Status.Value) 
         {
              Creator = User.GetAppId()
         });
@@ -54,6 +46,7 @@ public class CardController(ICommandBus commandBus) : ControllerBase
     }
 
     [HttpDelete("{cardId:guid}")]
+    [EndpointSummary("Delete Card")]
     public async Task<IActionResult> DeleteCardAsync([FromRoute] Guid cardId)
     {
         await commandBus.SendAsync(new DeleteCardCommand(cardId) 

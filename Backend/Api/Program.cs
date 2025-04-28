@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Flashcards.Api;
 using Flashcards.Common;
 using Flashcards.Common.EventStore;
@@ -5,6 +6,8 @@ using Flashcards.Common.ServiceBus;
 using Flashcards.Common.UserManagement;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +25,8 @@ builder.Services
         options.Token = builder.Configuration["Auth0:Token"];
         options.Endpoint = new Uri(builder.Configuration["Auth0:Endpoint"]!);
     })
-    .AddSingleton<IUserStore, Auth0UserStore>();
+    .AddSingleton<IUserStore, Auth0UserStore>()
+    .Decorate<IUserStore, DeletedUserStore>();
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowAllOrigins", builder =>  builder
@@ -33,7 +37,44 @@ builder.Services.AddCors(options => {
 });
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info = new OpenApiInfo
+        {
+            Title = "Flashcards API",
+            Version = "v1",
+            Description = "An API for managing decks of flashcards."
+        };
+        return Task.CompletedTask;
+    });
+    // Tranformer for enabling readOnly (only used for GET requests) properties.
+    options.AddSchemaTransformer((schema, context, cancellationToken) =>
+    {
+        var attr = (ReadOnlyAttribute?) context.JsonPropertyInfo?.AttributeProvider?
+            .GetCustomAttributes(typeof(ReadOnlyAttribute), false)
+            .FirstOrDefault();
+
+        if(attr != null && attr.IsReadOnly) {
+            schema.ReadOnly = true;
+        }
+        return Task.CompletedTask;
+    });
+    // Transformer for fixing unexpected null value for enums.
+    // https://github.com/dotnet/aspnetcore/issues/60986
+    options.AddSchemaTransformer((schema, context, cancellationToken) =>
+    {
+        if (schema.Enum is [.., OpenApiString { Value: null }])
+        {
+            schema.Enum.RemoveAt(schema.Enum.Count - 1);
+            schema.Nullable = true;
+            //schema.Title = schema.Title.Replace("NullableOf", "");
+        }
+
+        return Task.CompletedTask;
+    });
+});
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -80,8 +121,8 @@ if (app.Environment.IsDevelopment())
         options
         .WithTitle("Flashcards API")
         .WithClientButton(false)
-        .WithDownloadButton(false)
-        .WithModels(false);
+        .WithDefaultOpenAllTags(true)
+        .WithOperationSorter(OperationSorter.Method);
     });
 }
 app.UseCors("AllowAllOrigins");
