@@ -26,7 +26,9 @@ builder.Services
         options.Endpoint = new Uri(builder.Configuration["Auth0:Endpoint"]!);
     })
     .AddSingleton<IUserStore, Auth0UserStore>()
-    .Decorate<IUserStore, DeletedUserStore>();
+    .Decorate<IUserStore, CachedUserStore>()
+    .Decorate<IUserStore, DeletedUserStore>()
+    .AddMemoryCache();
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowAllOrigins", builder =>  builder

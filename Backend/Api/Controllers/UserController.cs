@@ -16,7 +16,7 @@ public class UserController(IUserStore userStore) : ControllerBase
     {
         var user = await userStore.GetByUsername(username);
         if(user == null) {
-            return NotFound();
+            return NotFound("User was not found");
         }
 
         return Ok(user);

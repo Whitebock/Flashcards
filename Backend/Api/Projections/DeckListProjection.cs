@@ -1,11 +1,10 @@
 using Flashcards.Api.Models;
 using Flashcards.Common.Messages;
 using Flashcards.Common.Messages.Events;
-using Flashcards.Common.UserManagement;
 
 namespace Flashcards.Api.Projections;
 
-public class DeckListProjection(CardProjection _cardProjection, IUserStore userStore) : 
+public class DeckListProjection(CardProjection _cardProjection) : 
     IEventHandler<DeckCreated>,
     IEventHandler<DeckUpdated>,
     IEventHandler<DeckDeleted>,
@@ -20,8 +19,7 @@ public class DeckListProjection(CardProjection _cardProjection, IUserStore userS
             Id = @event.DeckId,
             Name = @event.Name,
             Description = @event.Description,
-            CreatorId = @event.Creator,
-            CreatorName = userStore.GetById(@event.Creator).Result.Username
+            CreatorId = @event.Creator
         });
     }
 

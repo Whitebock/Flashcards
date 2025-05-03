@@ -15,7 +15,8 @@ namespace Flashcards.Api.Controllers;
 public class DeckController(
     DeckListProjection deckListProjection, 
     CardProjection cardProjection, 
-    ICommandBus commandBus
+    ICommandBus commandBus,
+    IUserStore userStore
     ) : ControllerBase
 {
     [HttpGet]
@@ -37,9 +38,10 @@ public class DeckController(
     [Route("recommended")]
     [EndpointSummary("Recommended Decks")]
     [EndpointDescription("Returns the most popular and recently created decks.")]
-    public ActionResult<ReccomendedDecksResponse> GetRecommendedDecks()
+    public async Task<ActionResult<ReccomendedDecksResponse>> GetRecommendedDecksAsync()
     {
         var decks = deckListProjection.GetAllDecks();
+        await AddCreatorName([..decks]);
         
         return Ok(new ReccomendedDecksResponse() {
             Popular = decks,
@@ -50,28 +52,38 @@ public class DeckController(
     [HttpGet("search")]
     [AllowAnonymous]
     [EndpointSummary("Search Decks")]
-    public async Task<ActionResult<IEnumerable<Deck>>> SearchDecksAsync([FromQuery] string? username, [FromQuery] string? deckname, [FromServices] IUserStore userStore)
+    public async Task<ActionResult<IEnumerable<Deck>>> SearchDecksAsync([FromQuery] string? username, [FromQuery] string? deckname)
     {
         IEnumerable<Deck> decks = deckListProjection.GetAllDecks();
         if(username != null) {
             var user = await userStore.GetByUsername(username);
+            if(user == null) return NotFound("User was not found");
             decks = decks.Where(d => d.CreatorId.Equals(user.Id));
         }
         if(deckname != null) {
             decks = decks.Where(d => d.EncodedName.Equals(deckname));
         }
+        await AddCreatorName([..decks]);
         return Ok(decks);
     }
 
     [HttpGet("{deckId:guid}")]
     [AllowAnonymous]
     [EndpointSummary("Deck Info")]
-    public ActionResult<Deck> GetDeck([FromRoute] Guid deckId)
+    public async Task<ActionResult<Deck>> GetDeckAsync([FromRoute] Guid deckId)
     {
         var deck = deckListProjection.GetDeck(deckId);
+        await AddCreatorName(deck);
         return Ok(deck);
     }
 
+    private async Task AddCreatorName(params Deck[] decks) {
+        foreach (var deck in decks)
+        {
+            var user = await userStore.GetById(deck.CreatorId!.Value);
+            if(user != null) deck.CreatorName = user.Username;
+        }
+    }
 
     [HttpGet("{deckId:guid}/cards")]
     [EndpointSummary("Cards of a Deck")]
@@ -92,9 +104,7 @@ public class DeckController(
     [EndpointSummary("Create Deck")]
     public async Task<IActionResult> CreateDeckAsync([FromBody] Deck deck)
     {
-        if(deck.Name == null || deck.Description == null) {
-            return BadRequest();
-        }
+        if(deck.Name == null || deck.Description == null) return BadRequest();
         await commandBus.SendAsync(new CreateDeckCommand(deck.Name, deck.Description) 
         {
              Creator = User.GetAppId()
@@ -106,6 +116,7 @@ public class DeckController(
     [EndpointSummary("Update Deck")]
     public async Task<IActionResult> UpdateDeckAsync([FromRoute] Guid deckId, [FromBody] Deck deck)
     {
+        if(deck.Name == null || deck.Description == null) return BadRequest();
         await commandBus.SendAsync(new UpdateDeckCommand(deckId, deck.Name, deck.Description) 
         {
              Creator = User.GetAppId()
@@ -138,7 +149,7 @@ public class DeckController(
         var card = cards.FirstOrDefault();
         var left = cards.Count();
 
-        if(card== null) return NotFound();
+        if(card == null) return NotFound();
 
         return Ok(new StudyDeckResponse(new Card() {
             Id = card.Id,

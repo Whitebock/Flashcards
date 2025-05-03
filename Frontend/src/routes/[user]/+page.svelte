@@ -22,7 +22,7 @@
 <div class="ui attached segment">
     <div class="ui four cards">
         {#each data.decks as deck}
-        <Deck deck={deck} editable/>
+        <Deck deck={deck} editable={data.profile.id == data.user?.id}/>
         {/each}
     </div>
 </div>
