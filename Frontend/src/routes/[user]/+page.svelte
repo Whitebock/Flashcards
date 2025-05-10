@@ -41,7 +41,7 @@
 {/if}
 
 <script lang="ts">
-    import Deck from '$lib/Deck.svelte';
+    import Deck from '$lib/components/Deck.svelte';
 
     let { data } = $props();
 </script>

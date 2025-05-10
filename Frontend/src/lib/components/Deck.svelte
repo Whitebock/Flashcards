@@ -1,26 +1,13 @@
 <div class="ui small card">
     <div class="content">
-        <div class="header">{deck.name}</div>
+        <i class="right floated bookmark outline icon"></i>
+        {#if false}<!--TODO: Check for AI tag--> 
+        <i class="right floated magic icon" title="This Deck uses AI generated content"></i>
+        {/if}
+        <a class="header" href="/{deck.creatorName}/{deck.encodedName}">{deck.name}</a>
         <div class="meta">by <a href="/{deck.creatorName}">{deck.creatorName}</a> - {deck.statistics?.total ?? 0} Cards</div>
         <div class="description">{deck.description}</div>
     </div>
-    {#if editable}
-    <div class="ui two buttons">
-        <a class="ui button" href="/{deck.creatorName}/{deck.encodedName}/edit">
-            <i class="edit icon"></i>
-            Edit
-        </a>
-        <a class="ui button" href="/{deck.creatorName}/{deck.encodedName}/study">
-            <i class="graduation cap icon"></i>
-            Study
-        </a>
-    </div>
-    {:else}
-    <a class="ui button" href="/{deck.creatorName}/{deck.encodedName}/study">
-        <i class="graduation cap icon"></i>
-        Study
-    </a>
-    {/if}
     {#if deck.statistics}
     <div class="ui bottom attached multiple progress" data-percent="{percentGood},{percentAgain},{percentNotSeen}">
         <div class="green bar" style="width: {percentGood}%;"></div>

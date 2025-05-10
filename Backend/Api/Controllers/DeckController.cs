@@ -21,48 +21,23 @@ public class DeckController(
 {
     [HttpGet]
     [AllowAnonymous]
-    [EndpointSummary("All Decks")]
-    public ActionResult<IEnumerable<Deck>> GetAllDecks()
-    {
-        var decks = deckListProjection.GetAllDecks();
-        return Ok(decks);
-    }
-
-    public class ReccomendedDecksResponse()
-    {
-        public required IEnumerable<Deck> Popular { get; init; }
-        public required IEnumerable<Deck> Recent { get; init; }
-    };
-    [HttpGet]
-    [AllowAnonymous]
-    [Route("recommended")]
-    [EndpointSummary("Recommended Decks")]
-    [EndpointDescription("Returns the most popular and recently created decks.")]
-    public async Task<ActionResult<ReccomendedDecksResponse>> GetRecommendedDecksAsync()
-    {
-        var decks = deckListProjection.GetAllDecks();
-        await AddCreatorName([..decks]);
-        
-        return Ok(new ReccomendedDecksResponse() {
-            Popular = decks,
-            Recent = decks,
-        });
-    }
-
-    [HttpGet("search")]
-    [AllowAnonymous]
-    [EndpointSummary("Search Decks")]
-    public async Task<ActionResult<IEnumerable<Deck>>> SearchDecksAsync([FromQuery] string? username, [FromQuery] string? deckname)
+    [EndpointSummary("Get Decks")]
+    [EndpointDescription("Returns a list of decks. You can filter by user and name.")]
+    [ProducesResponseType<IEnumerable<Deck>>(StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
+    public async Task<ActionResult<IEnumerable<Deck>>> SearchDecksAsync([FromQuery] DeckQuery query)
     {
         IEnumerable<Deck> decks = deckListProjection.GetAllDecks();
-        if(username != null) {
-            var user = await userStore.GetByUsername(username);
+        if(query.User != null) {
+            var user = await userStore.GetByUsername(query.User);
             if(user == null) return NotFound("User was not found");
             decks = decks.Where(d => d.CreatorId.Equals(user.Id));
         }
-        if(deckname != null) {
-            decks = decks.Where(d => d.EncodedName.Equals(deckname));
+        if(query.Name != null) {
+            decks = decks.Where(d => d.EncodedName.Equals(query.Name));
         }
+        // TODO: Sort 
+        decks = decks.Take(query.Amount);
         await AddCreatorName([..decks]);
         return Ok(decks);
     }
@@ -86,6 +61,7 @@ public class DeckController(
     }
 
     [HttpGet("{deckId:guid}/cards")]
+    [AllowAnonymous]
     [EndpointSummary("Cards of a Deck")]
     public ActionResult<IEnumerable<Card>> GetCardsForDeck([FromRoute] Guid deckId)
     {

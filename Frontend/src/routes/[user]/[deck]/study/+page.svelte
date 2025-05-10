@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>Flashcard Studying</title>
+	<title>Study | {data.deck.name}</title>
 </svelte:head>
 <div class="ui container flashcard-container">
     <div class="ui small progress" data-percent={100 - (data.left / data.deck.statistics!.total) * 100}>

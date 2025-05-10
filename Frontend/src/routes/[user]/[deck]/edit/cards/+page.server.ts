@@ -1,4 +1,3 @@
-import api from '$lib/api';
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 

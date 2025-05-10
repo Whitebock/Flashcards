@@ -1,57 +1,68 @@
 <svelte:head>
-	<title>Flashcard Studying</title>
+	<title>Flashcards | Explore</title>
 </svelte:head>
-<div class="ui hidden warning message">
+<div class="ui hidden message">
+    <i class="close icon"></i>
     <div class="header">
-        <i class="exclamation triangle icon"></i>
-        Login or Register to Save Your Progress!
+        Ready to Level Up Your Learning?
     </div>
     <p>
-        Unlock the full potential of Flashcards by creating your own decks, tracking your progress, and competing with friends.
+        Discover trending and upcoming decks designed to make studying more engaging and effective.
+        Explore topics you're passionate about, learn at your own pace, and make it stick.
+        Want to make it even more fun? Team up with friends and turn learning into a challenge!
     </p>
 </div>
 
-<div class="ui segment">
-    Check out some popular and upcoming decks to enhance your learning experience.
-    Dive into topics that interest you and master them at your own pace.
-    Want to make studying more fun? Collaborate with your friends and challenge each other to learn faster and better!
+<div class="ui stackable two column grid">
+    <div class="ten wide column">
+            <h3 class="ui header">Popular Decks</h3>
+            {#if data.popular.length == 0}
+            <div class="ui placeholder segment">
+                <div class="ui icon header">
+                    <i class="chartline icon"></i>
+                    No decks have been created yet
+                </div>
+            </div>
+        {:else}
+        <div class="ui two cards">
+            {#each data.popular.slice(0, 4) as deck}
+                <Deck deck={deck}/>
+            {/each}
+        </div>
+        {/if}
+
+        <h3 class="ui header">New Decks</h3>
+        {#if data.recent.length == 0}
+        <div class="ui placeholder segment">
+            <div class="ui icon header">
+                <i class="folder open outline icon"></i>
+                No decks have been created yet
+            </div>
+        </div>
+        {:else}
+        <div class="ui two cards">
+            {#each data.recent.slice(0, 4) as deck}
+            <Deck deck={deck}/>
+            {/each}
+        </div>
+        {/if}
+    </div>
+    <div class="six wide column">
+        <h3 class="ui header">
+            <div class="content">Latest Activities</div>
+        </h3>
+        <div class="ui placeholder segment">
+            <div class="ui icon header">
+                <i class="feed icon"></i>
+                No updates to show
+            </div>
+        </div>
+    </div>
 </div>
 
-{#if data.recent.length == 0}
-<div class="ui placeholder segment">
-    <div class="ui icon header">
-        <i class="folder open outline icon"></i>
-        No decks have been created yet.
-    </div>
-</div>
-{:else}
-<div class="ui segment">
-    <h3 class="ui header">
-        <i class="chartline icon"></i>
-        <div class="content">Popular Decks</div>
-    </h3>
-    <div class="ui four cards">
-        {#each data.popular! as deck}
-            <Deck deck={deck}/>
-        {/each}
-    </div>
-</div>
-
-<div class="ui segment">
-    <h3 class="ui header">
-        <i class="rss icon"></i>
-        <div class="content">New Decks</div>
-    </h3>
-    <div class="ui four cards">
-        {#each data.recent! as deck}
-            <Deck deck={deck}/>
-        {/each}
-    </div>
-</div>
-{/if}
 
 <script lang="ts">
-    import Deck from '$lib/Deck.svelte';
+    import Deck from '$lib/components/Deck.svelte';
 
     let { data } = $props();
 </script>

@@ -139,10 +139,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** All Decks */
+        /**
+         * Get Decks
+         * @description Returns a list of decks. You can filter by user and name.
+         */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    user?: string;
+                    name?: string;
+                    amount?: number;
+                    sort?: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -155,9 +163,16 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["Deck"][];
                         "application/json": components["schemas"]["Deck"][];
-                        "text/json": components["schemas"]["Deck"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -188,88 +203,6 @@ export interface paths {
                 };
             };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/decks/recommended": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Recommended Decks
-         * @description Returns the most popular and recently created decks.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ReccomendedDecksResponse"];
-                        "application/json": components["schemas"]["ReccomendedDecksResponse"];
-                        "text/json": components["schemas"]["ReccomendedDecksResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/decks/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Search Decks */
-        get: {
-            parameters: {
-                query?: {
-                    username?: string;
-                    deckname?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["Deck"][];
-                        "application/json": components["schemas"]["Deck"][];
-                        "text/json": components["schemas"]["Deck"][];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -554,10 +487,6 @@ export interface components {
             detail?: string | null;
             instance?: string | null;
         };
-        ReccomendedDecksResponse: {
-            popular: components["schemas"]["Deck"][];
-            recent: unknown[];
-        };
         StudyDeckResponse: {
             card: components["schemas"]["Card"];
             /** Format: int32 */
@@ -581,7 +510,6 @@ export type Deck = components['schemas']['Deck'];
 export type DeckStatistics = components['schemas']['DeckStatistics'];
 export type NullableOfCardStatus = components['schemas']['NullableOfCardStatus'];
 export type ProblemDetails = components['schemas']['ProblemDetails'];
-export type ReccomendedDecksResponse = components['schemas']['ReccomendedDecksResponse'];
 export type StudyDeckResponse = components['schemas']['StudyDeckResponse'];
 export type User = components['schemas']['User'];
 export type $defs = Record<string, never>;

@@ -1,3 +1,6 @@
+<svelte:head>
+	<title>Edit | {data.deck.name}</title>
+</svelte:head>
 <form class="ui form" method="POST" use:enhance={() => async ({ update }) => {
     await update({reset: false});
 }}>

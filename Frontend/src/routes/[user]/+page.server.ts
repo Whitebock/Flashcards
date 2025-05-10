@@ -11,9 +11,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         error(500, "Unable to fetch user");
     }
 
-    const { data: decks } = await locals.api.GET('/decks/search', {params: {
+    const { data: decks } = await locals.api.GET('/decks', {params: {
         query: {
-            username: profile.username
+            user: profile.username
         }
     }})
 

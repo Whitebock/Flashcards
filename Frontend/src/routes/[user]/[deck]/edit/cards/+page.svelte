@@ -1,5 +1,10 @@
+<svelte:head>
+	<title>Edit | {data.deck.name}</title>
+</svelte:head>
 <div class="ui horizontal equal width basic segments">
     <div class="ui segment">
+        <QuestionList cards={data.cards} bind:selected editable />
+        <!--
         <div class="ui scrolling basic segment">
             <div class="ui selection list">
                 {#each data.cards as card}
@@ -14,6 +19,7 @@
             </div>
         </div>
         <button class="fluid ui button" onclick={() => selected = emptyCard}>Add Card</button>
+        -->
     </div>
     <div class="ui segment">
         <h3 class="ui dividing header">Details</h3>
@@ -45,6 +51,7 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
     import type { Card } from '$lib/api/schema';
+    import QuestionList from "$lib/components/QuestionList.svelte";
 
     let { data } = $props();
     let selected = $state<Card>()!;
