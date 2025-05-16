@@ -10,13 +10,13 @@ namespace Flashcards.Api.Controllers;
 [ApiController]
 [Authorize("HasUser")]
 [Route("cards")]
-public class CardController(ICommandBus commandBus) : ControllerBase
+public class CardController(ICommandSender commandSender) : ControllerBase
 {    
     [HttpPost]
     [EndpointSummary("Create Card")]
     public async Task<IActionResult> CreateCardAsync([FromBody] Card card)
     {
-        await commandBus.SendAsync(new CreateCardCommand(card.DeckId.Value, card.Front, card.Back) 
+        await commandSender.SendAsync(new CreateCardCommand(card.DeckId.Value, card.Front, card.Back) 
         {
              Creator = User.GetAppId()
         });
@@ -27,7 +27,7 @@ public class CardController(ICommandBus commandBus) : ControllerBase
     [EndpointSummary("Update Card")]
     public async Task<IActionResult> UpdateCardAsync([FromRoute] Guid cardId, [FromBody] Card card)
     {
-        await commandBus.SendAsync(new UpdateCardCommand(cardId, card.Front, card.Back) 
+        await commandSender.SendAsync(new UpdateCardCommand(cardId, card.Front, card.Back) 
         {
              Creator = User.GetAppId()
         });
@@ -38,7 +38,7 @@ public class CardController(ICommandBus commandBus) : ControllerBase
     [EndpointSummary("Change Card Status")]
     public async Task<IActionResult> ChangeCardStatusAsync([FromRoute] Guid cardId, [FromBody] Card card)
     {
-        await commandBus.SendAsync(new ChangeCardStatus(cardId, card.Status.Value) 
+        await commandSender.SendAsync(new ChangeCardStatusCommand(cardId, card.Status.Value) 
         {
              Creator = User.GetAppId()
         });
@@ -49,7 +49,7 @@ public class CardController(ICommandBus commandBus) : ControllerBase
     [EndpointSummary("Delete Card")]
     public async Task<IActionResult> DeleteCardAsync([FromRoute] Guid cardId)
     {
-        await commandBus.SendAsync(new DeleteCardCommand(cardId) 
+        await commandSender.SendAsync(new DeleteCardCommand(cardId) 
         {
              Creator = User.GetAppId()
         });

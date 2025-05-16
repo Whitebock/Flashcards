@@ -6,20 +6,22 @@ namespace Flashcards.Common.Projections;
 /// <summary>
 /// Used for determining if a user ever interacted with the application.
 /// </summary>
-public class UserIdProjection() : 
+public class UserIdProjection() :
     IEventHandler<DeckCreated>,
     IEventHandler<CardStatusChanged>
 {
     private readonly HashSet<Guid> _userIds = [];
 
-    public void Handle(DeckCreated @event)
+    public Task HandleAsync(DeckCreated @event)
     {
         _userIds.Add(@event.Creator);
+        return Task.CompletedTask;
     }
 
-    public void Handle(CardStatusChanged @event)
+    public Task HandleAsync(CardStatusChanged @event)
     {
         _userIds.Add(@event.Creator);
+        return Task.CompletedTask;
     }
 
     public bool HasUserId(Guid userId)

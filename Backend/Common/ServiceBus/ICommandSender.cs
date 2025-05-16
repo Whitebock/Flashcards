@@ -2,7 +2,7 @@ using Flashcards.Common.Messages;
 
 namespace Flashcards.Common.ServiceBus;
 
-public interface ICommandBus
+public interface ICommandSender
 {
     Task SendAsync(params ICommand[] commands);
 }

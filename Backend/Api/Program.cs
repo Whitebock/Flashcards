@@ -1,7 +1,10 @@
 using System.ComponentModel;
 using Flashcards.Api;
+using Flashcards.Api.CommandHandler;
+using Flashcards.Api.Projections;
 using Flashcards.Common;
 using Flashcards.Common.EventStore;
+using Flashcards.Common.Projections;
 using Flashcards.Common.ServiceBus;
 using Flashcards.Common.UserManagement;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,12 +18,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddIniFile("appsettings.ini");
 
 builder.Services
-    .AddSingleton<IEventBus, InMemoryEventBus>()
+    .AddSingleton<IServiceBus, InMemoryServiceBus>()
+    .AddHostedService(provider => provider.GetRequiredService<IServiceBus>())
+    .AddSingleton<ICommandSender, ServiceBusCommandSender>()
+    .AddSingleton<IEventSender, ServiceBusEventSender>()
     .AddSingleton<IEventStore, JsonLinesEventStore>()
-    .Configure<JsonLinesEventStoreOptions>(options => { options.FilePath = "events.jsonl"; })
-    .AddSingleton<ICommandBus, InMemoryCommandBus>()
-    .AddCommandHandlers()
-    .AddEventHandlers()
+    .Configure<JsonLinesEventStoreOptions>(options => { options.FilePath = "../events.jsonl"; })
+    .AddProjection<DeckListProjection>()
+    .AddProjection<CardProjection>()
+    .AddProjection<UserIdProjection>()
+    .AddHostedService<CommandHandlerService>()
+    .AddCommandHandler<DeckCommandHandler>()
     .Configure<Auth0UserStoreOptions>(options => {
         options.Token = builder.Configuration["Auth0:Token"];
         options.Endpoint = new Uri(builder.Configuration["Auth0:Endpoint"]!);
@@ -92,26 +100,6 @@ builder.Services.AddAuthorization(options => {
 
 var app = builder.Build();
 
-// Load Application Data.
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
-var eventStore = app.Services.GetRequiredService<IEventStore>();
-var eventBus = (InMemoryEventBus)app.Services.GetRequiredService<IEventBus>();
-
-logger.LogInformation("Rehydrating Projections");
-var eventCount = 0;
-await foreach (var @event in eventStore.GetEventsAsync())
-{
-    eventBus.ApplyToHandlers(@event);
-    eventCount++;
-}
-logger.LogInformation("Total events rehydrated: {EventCount}", eventCount);
-
-if(app.Environment.IsDevelopment() && eventCount == 0) {
-    var commandBus = app.Services.GetRequiredService<ICommandBus>();
-    await commandBus.SendAsync(TestData.GetTestCommands().ToArray());
-}
-
-// Set up HTTP Request Pipeline.
 app.UseAuthentication();
 app.UseAuthorization();
 if (app.Environment.IsDevelopment())

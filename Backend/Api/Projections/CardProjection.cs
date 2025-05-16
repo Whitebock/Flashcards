@@ -18,12 +18,13 @@ public class CardProjection :
     public Guid GetDeckForCard(Guid id) =>
         _cards.FirstOrDefault(c => c.Key.Id == id).Value;
 
-    public void Handle(CardCreated e)
+    public Task HandleAsync(CardCreated e)
     {
         _cards.Add(new CardDto(e.CardId, e.Front, e.Back), e.DeckId);
+        return Task.CompletedTask;
     }
 
-    public void Handle(CardUpdated @event)
+    public Task HandleAsync(CardUpdated @event)
     {
         var cardToUpdate = _cards.FirstOrDefault(c => c.Key.Id == @event.CardId);
         if (cardToUpdate.Key != null)
@@ -31,15 +32,17 @@ public class CardProjection :
             _cards.Remove(cardToUpdate.Key);
             _cards.Add(new CardDto(@event.CardId, @event.Front, @event.Back), cardToUpdate.Value);
         }
+        return Task.CompletedTask;
     }
 
-    public void Handle(CardDeleted @event)
+    public Task HandleAsync(CardDeleted @event)
     {
         var cardToRemove = _cards.FirstOrDefault(c => c.Key.Id == @event.CardId);
         _cards.Remove(cardToRemove.Key);
+        return Task.CompletedTask;
     }
 
-    public void Handle(CardStatusChanged @event)
+    public Task HandleAsync(CardStatusChanged @event)
     {
         var cardToUpdate = _cards.FirstOrDefault(c => c.Key.Id == @event.CardId);
         if (cardToUpdate.Key != null)
@@ -47,5 +50,6 @@ public class CardProjection :
             _cards.Remove(cardToUpdate.Key);
             _cards.Add(cardToUpdate.Key with {Status = @event.Status}, cardToUpdate.Value);
         }
+        return Task.CompletedTask;
     }
 }
