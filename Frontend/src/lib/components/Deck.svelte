@@ -1,7 +1,7 @@
 <div class="ui small card">
     <div class="content">
         <i class="right floated bookmark outline icon"></i>
-        {#if false}<!--TODO: Check for AI tag--> 
+        {#if deck.tags?.includes("AI")} 
         <i class="right floated magic icon" title="This Deck uses AI generated content"></i>
         {/if}
         <a class="header" href="/{deck.creatorName}/{deck.encodedName}">{deck.name}</a>
@@ -18,7 +18,7 @@
 </div>
 
 <script lang="ts">
-    import type { Deck } from "./api/schema";
+    import type { Deck } from "$lib/api/schema";
 
     let { deck, editable = false }: {
         deck: Deck,

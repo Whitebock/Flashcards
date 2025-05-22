@@ -11,15 +11,25 @@
         </div>
     </div>
 </div>
-<div class="ui basic segment">
-    {#if search == "saved"}
-    Showing saved Decks
-    {:else}
-    Showing all Decks
-    {/if}
+{#if data.decks.length == 0}
+<div class="ui placeholder segment">
+    <div class="ui icon header">
+        <i class="folder open outline icon"></i>
+        No decks have been created yet
+    </div>
 </div>
+{:else}
+<div class="ui four cards">
+    {#each data.decks as deck}
+    <Deck deck={deck}/>
+    {/each}
+</div>
+{/if}
 
 <script>
+    import Deck from '$lib/components/Deck.svelte';
     import { page } from '$app/state';
+
+    let { data } = $props();
     let search = $derived(page.url.searchParams.get("s"))
 </script>

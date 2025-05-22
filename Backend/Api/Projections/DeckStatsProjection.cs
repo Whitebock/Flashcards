@@ -10,7 +10,9 @@ public class DeckStatsProjection(IProjection<CardProjection> _cardProjection) :
     IEventHandler<DeckUpdated>,
     IEventHandler<DeckDeleted>,
     IEventHandler<CardCreated>,
-    IEventHandler<CardStatusChanged>
+    IEventHandler<CardStatusChanged>,
+    IEventHandler<TagAdded>,
+    IEventHandler<TagRemoved>
 {
     public List<Deck> _decks = [];
 
@@ -68,5 +70,19 @@ public class DeckStatsProjection(IProjection<CardProjection> _cardProjection) :
             Correct = cards.Count(c => c.Status == CardStatus.Good || c.Status == CardStatus.Easy),
             Incorrect = cards.Count(c => c.Status == CardStatus.Again)
         };
+    }
+
+    public Task HandleAsync(TagAdded @event)
+    {
+        var deck = _decks.First(deck => deck.Id.Equals(@event.DeckId));
+        deck.Tags.Add(@event.Tag);
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(TagRemoved @event)
+    {
+        var deck = _decks.First(deck => deck.Id.Equals(@event.DeckId));
+        deck.Tags.Remove(@event.Tag);
+        return Task.CompletedTask;
     }
 }

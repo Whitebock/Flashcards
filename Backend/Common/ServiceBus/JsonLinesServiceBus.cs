@@ -84,7 +84,7 @@ public class JsonLinesServiceBus(ILogger<JsonLinesServiceBus> logger, IOptions<J
         {
             logger.LogDebug("Creating new Queue: {Queue}", name);
             var filePath = Path.Combine(options.Value.Dictionary, $"servicebus.{name}.jsonl");
-            File.Create(filePath);
+            File.Create(filePath).Close();
             queue = new JsonLinesServiceBusQueue(filePath, logger);
             _queues.Add(name, queue);
         }

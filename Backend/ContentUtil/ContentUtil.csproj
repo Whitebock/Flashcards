@@ -6,10 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Flashcards.ContentUtil</RootNamespace>
+    <UserSecretsId>af70439d-4353-4467-ab19-f4496e08e9dc</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="9.0.5" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.53.1" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
 

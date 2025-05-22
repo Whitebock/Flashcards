@@ -440,6 +440,7 @@ export interface components {
             readonly id?: string | null;
             name?: string | null;
             description?: string | null;
+            tags?: string[];
             /**
              * Format: uuid
              * @description ID of the Creator
