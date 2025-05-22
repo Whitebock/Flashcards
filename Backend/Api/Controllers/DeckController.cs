@@ -14,7 +14,7 @@ namespace Flashcards.Api.Controllers;
 [Authorize("HasUser")]
 [Route("decks")]
 public class DeckController(
-    IProjection<DeckListProjection> deckListProjection, 
+    IProjection<DeckStatsProjection> deckListProjection, 
     IProjection<CardProjection> cardProjection, 
     ICommandSender commandSender,
     IUserStore userStore

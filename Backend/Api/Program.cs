@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using Flashcards.Api;
 using Flashcards.Api.CommandHandler;
 using Flashcards.Api.Projections;
 using Flashcards.Common;
@@ -14,17 +13,16 @@ using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.Configuration.AddIniFile("appsettings.ini");
-
 builder.Services
-    .AddSingleton<IServiceBus, InMemoryServiceBus>()
+    .AddSingleton<IServiceBus, JsonLinesServiceBus>()
+    .Configure<JsonLinesServiceBusOptions>(options => options.Dictionary = "../")
     .AddHostedService(provider => provider.GetRequiredService<IServiceBus>())
     .AddSingleton<ICommandSender, ServiceBusCommandSender>()
     .AddSingleton<IEventSender, ServiceBusEventSender>()
     .AddSingleton<IEventStore, JsonLinesEventStore>()
     .Configure<JsonLinesEventStoreOptions>(options => { options.FilePath = "../events.jsonl"; })
-    .AddProjection<DeckListProjection>()
+    .AddProjection<DeckStatsProjection>()
     .AddProjection<CardProjection>()
     .AddProjection<UserIdProjection>()
     .AddHostedService<CommandHandlerService>()

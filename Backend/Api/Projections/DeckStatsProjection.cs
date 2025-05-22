@@ -5,7 +5,7 @@ using Flashcards.Common.Projections;
 
 namespace Flashcards.Api.Projections;
 
-public class DeckListProjection(IProjection<CardProjection> _cardProjection) : 
+public class DeckStatsProjection(IProjection<CardProjection> _cardProjection) : 
     IEventHandler<DeckCreated>,
     IEventHandler<DeckUpdated>,
     IEventHandler<DeckDeleted>,

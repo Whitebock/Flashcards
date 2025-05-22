@@ -6,22 +6,24 @@ namespace Flashcards.Api.CommandHandler;
 
 public class CommandHandlerService(IServiceBus serviceBus, IEnumerable<ICommandHandler> commandHandlers) : IHostedService
 {
-    public Task StartAsync(CancellationToken cancellationToken)
+    IServiceBusQueue? queue = null;
+    private readonly List<Task> tasks = [];
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        serviceBus.RecievedAsync += OnMessageRecieved;
-        return Task.CompletedTask;
+        queue = await serviceBus.GetQueueAsync("commands", cancellationToken);
+        queue.MessageReceived += OnMessageRecieved;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        serviceBus.RecievedAsync -= OnMessageRecieved;
-        return Task.CompletedTask;
+        queue!.MessageReceived -= OnMessageRecieved;
+        await Task.WhenAll(tasks);
     }
 
-    private async Task OnMessageRecieved(IMessage message)
+    private void OnMessageRecieved(IMessage message)
     {
         if (message is not ICommand command) return;
-
+        
         var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
         var handler = commandHandlers.FirstOrDefault(handlerType.IsInstanceOfType) 
             ?? throw new InvalidOperationException($"No handler found for command type {command.GetType().Name}");
@@ -31,7 +33,8 @@ public class CommandHandlerService(IServiceBus serviceBus, IEnumerable<ICommandH
         
         var task = method.Invoke(handler, [command]) as Task 
             ?? throw new InvalidOperationException($"HandleAsync did not return a Task for command type {command.GetType().Name}");
-        
-        await task;
+
+        tasks.RemoveAll(x => x.IsCompleted);
+        tasks.Add(task);
     }
 }

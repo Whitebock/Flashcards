@@ -8,7 +8,7 @@ public class JsonLinesEventStore(IOptions<JsonLinesEventStoreOptions> options) :
 {
     public string FullPath => Path.GetFullPath(options.Value.FilePath);
     public JsonSerializerOptions SerializerOptions {get;} = new() {
-        TypeInfoResolver = new JsonEventTypeResolver()
+        TypeInfoResolver = new JsonMessageTypeResolver()
     };
     public async IAsyncEnumerable<IEvent> GetEventsAsync() {
         if (!File.Exists(FullPath)) yield break;
