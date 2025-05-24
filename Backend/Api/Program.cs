@@ -27,10 +27,13 @@ builder.Services
     .AddProjection<UserIdProjection>()
     .AddHostedService<CommandHandlerService>()
     .AddCommandHandler<DeckCommandHandler>()
-    .Configure<Auth0UserStoreOptions>(options => {
-        options.Token = builder.Configuration["Auth0:Token"];
-        options.Endpoint = new Uri(builder.Configuration["Auth0:Endpoint"]!);
+    .Configure<Auth0UserStoreOptions>(options =>
+    {
+        options.Domain =  builder.Configuration["Auth0:Domain"];
+        options.ClientId = builder.Configuration["Auth0:ClientId"];
+        options.ClientSecret = builder.Configuration["Auth0:ClientSecret"];
     })
+    .AddHttpClient()
     .AddSingleton<IUserStore, Auth0UserStore>()
     .Decorate<IUserStore, CachedUserStore>()
     .Decorate<IUserStore, DeletedUserStore>()
