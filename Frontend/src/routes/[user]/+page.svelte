@@ -11,6 +11,12 @@
         {data.profile.username}
         <div class="sub header">{data.profile?.id}</div>
     </div>
+    {#if isCurrentUser}
+    <a class="ui right floated button" href="/auth/logout">
+        <i class="sign out alternate icon"></i>
+        Logout
+    </a>
+    {/if}
 </h2>
 
 <h3 class="ui top attached header">
@@ -22,7 +28,7 @@
 <div class="ui attached segment">
     <div class="ui four cards">
         {#each data.decks as deck}
-        <Deck deck={deck} editable={data.profile.id == data.user?.id}/>
+        <Deck deck={deck}/>
         {/each}
     </div>
 </div>
@@ -44,4 +50,5 @@
     import Deck from '$lib/components/Deck.svelte';
 
     let { data } = $props();
+    let isCurrentUser = $derived(data.profile.id == data.user?.id);
 </script>

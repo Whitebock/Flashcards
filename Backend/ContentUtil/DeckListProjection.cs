@@ -4,9 +4,9 @@ using Flashcards.Common.Messages.Events;
 namespace Flashcards.ContentUtil;
 
 public class DeckListProjection() :
-    IEventHandler<DeckCreated>,
-    IEventHandler<DeckUpdated>,
-    IEventHandler<DeckDeleted>
+    IAsyncEventHandler<DeckCreated>,
+    IAsyncEventHandler<DeckUpdated>,
+    IAsyncEventHandler<DeckDeleted>
 {
     public Dictionary<Guid, string> Decks { get; set; } = [];
     public Task HandleAsync(DeckCreated @event)

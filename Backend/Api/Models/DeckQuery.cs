@@ -21,8 +21,8 @@ public class DeckQuery
         public int Amount { get; set; } = 20;
 
         [Description("Sort order of the results.")]
-        [DefaultValue("updated")]
-        [RegularExpression("updated|popular|new", ErrorMessage = "Sort must be either 'updated', 'popular' or 'new'.")]
+        [DefaultValue("last-updated")]
+        [RegularExpression("last-updated|popular|new", ErrorMessage = "Sort must be either 'updated', 'popular' or 'new'.")]
         [FromQuery(Name = "sort")]
-        public string Sort { get; set; } = "updated";
+        public string Sort { get; set; } = "last-updated";
 }

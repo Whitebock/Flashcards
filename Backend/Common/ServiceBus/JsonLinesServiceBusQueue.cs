@@ -15,7 +15,11 @@ public class JsonLinesServiceBusQueue(string filePath, ILogger logger) : IServic
     public async Task PublishAsync(IMessage message, CancellationToken cancellationToken = default)
     {
         await semaphore.WaitAsync(cancellationToken);
-        if (cancellationToken.IsCancellationRequested) return;
+        if (cancellationToken.IsCancellationRequested)
+        {
+            semaphore.Release();
+            return;
+        }
         var json = JsonSerializer.Serialize(message, SerializerOptions);
         await using var stream = await GetFileLockAsync(filePath, options =>
         {
@@ -36,7 +40,11 @@ public class JsonLinesServiceBusQueue(string filePath, ILogger logger) : IServic
         IsProcessing = true;
         await semaphore.WaitAsync(cancellationToken);
         await using var stream = await GetFileLockAsync(filePath, null, cancellationToken);
-        if (cancellationToken.IsCancellationRequested) return;
+        if (cancellationToken.IsCancellationRequested) {
+            semaphore.Release();
+            IsProcessing = false;
+            return;
+        };
 
         using var reader = new StreamReader(stream);
         string? json;

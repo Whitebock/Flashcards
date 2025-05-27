@@ -450,6 +450,12 @@ export interface components {
             readonly creatorName?: string | null;
             /** @description Url-friendly name used for routing. */
             readonly encodedName?: string | null;
+            /**
+             * Format: int32
+             * @description Total amount of cards in this deck.
+             * @default 0
+             */
+            readonly cardCount: number;
             statistics?: components["schemas"]["DeckStatistics"];
         };
         DeckStatistics: {
@@ -471,12 +477,6 @@ export interface components {
              * @default 0
              */
             incorrect: number;
-            /**
-             * Format: int32
-             * @description Total amount of cards in this deck.
-             * @default 0
-             */
-            total: number;
         } | null;
         /** @enum {unknown|null} */
         NullableOfCardStatus: "NotSeen" | "Again" | "Good" | "Easy" | null;

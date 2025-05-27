@@ -9,47 +9,43 @@ public class CardProjection :
     IEventHandler<CardDeleted>,
     IEventHandler<CardStatusChanged>
 {
-    public record CardDto(Guid Id, string Front, string Back, CardStatus Status = CardStatus.NotSeen);
-    private Dictionary<CardDto, Guid> _cards = [];
-
-    public List<CardDto> GetCardsForDeck(Guid id) => 
-        _cards.Where(c => c.Value == id).Select(c => c.Key).ToList();
-    
-    public Guid GetDeckForCard(Guid id) =>
-        _cards.FirstOrDefault(c => c.Key.Id == id).Value;
-
-    public Task HandleAsync(CardCreated e)
+    public class CardDto
     {
-        _cards.Add(new CardDto(e.CardId, e.Front, e.Back), e.DeckId);
-        return Task.CompletedTask;
-    }
+        public required Guid Id { get; set; }
+        public required Guid DeckId { get; set; }
+        public required string Front { get; set; }
+        public required string Back { get; set; }
+        public CardStatus Status { get; set; } = CardStatus.NotSeen;
+    };
+    private readonly Dictionary<Guid, CardDto> _cards = [];
 
-    public Task HandleAsync(CardUpdated @event)
+    public IEnumerable<CardDto> GetCardsForDeck(Guid deckId) => _cards.Values.Where(c => c.DeckId == deckId);
+    public Guid GetDeckForCard(Guid cardId) =>_cards[cardId].DeckId;
+
+    public void Handle(CardCreated e)
     {
-        var cardToUpdate = _cards.FirstOrDefault(c => c.Key.Id == @event.CardId);
-        if (cardToUpdate.Key != null)
+        _cards.Add(e.CardId, new CardDto()
         {
-            _cards.Remove(cardToUpdate.Key);
-            _cards.Add(new CardDto(@event.CardId, @event.Front, @event.Back), cardToUpdate.Value);
-        }
-        return Task.CompletedTask;
+            Id = e.CardId,
+            DeckId = e.DeckId,
+            Front = e.Front,
+            Back = e.Back
+        });
     }
 
-    public Task HandleAsync(CardDeleted @event)
+    public void Handle(CardUpdated @event)
     {
-        var cardToRemove = _cards.FirstOrDefault(c => c.Key.Id == @event.CardId);
-        _cards.Remove(cardToRemove.Key);
-        return Task.CompletedTask;
+        _cards[@event.CardId].Front = @event.Front;
+        _cards[@event.CardId].Front = @event.Back;
     }
 
-    public Task HandleAsync(CardStatusChanged @event)
+    public void Handle(CardDeleted @event)
     {
-        var cardToUpdate = _cards.FirstOrDefault(c => c.Key.Id == @event.CardId);
-        if (cardToUpdate.Key != null)
-        {
-            _cards.Remove(cardToUpdate.Key);
-            _cards.Add(cardToUpdate.Key with {Status = @event.Status}, cardToUpdate.Value);
-        }
-        return Task.CompletedTask;
+        _cards.Remove(@event.CardId);
+    }
+
+    public void Handle(CardStatusChanged @event)
+    {
+        _cards[@event.CardId].Status = @event.Status;
     }
 }

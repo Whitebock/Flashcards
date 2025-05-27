@@ -14,7 +14,9 @@ namespace Flashcards.Api.Controllers;
 [Authorize("HasUser")]
 [Route("decks")]
 public class DeckController(
-    IProjection<DeckStatsProjection> deckListProjection, 
+    IProjection<DecksProjection> decksProjection,
+    IProjection<DeckActivityProjection> deckACtivityProjection,
+    IProjection<DeckUserStatsProjection> deckUserStatsProjection,
     IProjection<CardProjection> cardProjection, 
     ICommandSender commandSender,
     IUserStore userStore
@@ -28,20 +30,61 @@ public class DeckController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
     public async Task<ActionResult<IEnumerable<Deck>>> SearchDecksAsync([FromQuery] DeckQuery query)
     {
-        var projection = await deckListProjection.GetAsync();
-        var decks = projection.GetAllDecks();
+        var deckList = await decksProjection.GetAsync();
+        var decks = deckList.GetAllDecks();
         if(query.User != null) {
             var user = await userStore.GetByUsername(query.User);
             if(user == null) return NotFound("User was not found");
             decks = decks.Where(d => d.CreatorId.Equals(user.Id));
         }
         if(query.Name != null) {
-            decks = decks.Where(d => d.EncodedName.Equals(query.Name));
+            decks = decks.Where(d => d.Name.ToLower().Replace(' ', '_').Equals(query.Name));
         }
-        // TODO: Sort 
+        switch (query.Sort)
+        {
+            case "last-updated":
+                decks = decks.OrderByDescending(deck => deck.LastUpdated);
+                break;
+            case "new":
+                decks = decks.OrderByDescending(deck => deck.Created);
+                break;
+            case "popular":
+                var activity = await deckACtivityProjection.GetAsync();
+                decks = decks.OrderByDescending(deck => activity.GetDeckActivity(deck.DeckId));
+                break;
+            default:
+                return BadRequest("Unknown sorting option: " + query.Sort);
+        }
         decks = decks.Take(query.Amount);
-        await AddCreatorName([..decks]);
-        return Ok(decks);
+        var result = await Task.WhenAll(decks.Select(DeckDtoToModel));
+        return Ok(result);
+    }
+
+    private async Task<Deck> DeckDtoToModel(DecksProjection.DeckDto dto)
+    {
+        var creator = await userStore.GetById(dto.CreatorId);
+        var deck = new Deck()
+        {
+            Id = dto.DeckId,
+            Name = dto.Name,
+            Description = dto.Description,
+            CardCount = dto.CardCount,
+            CreatorId = dto.CreatorId,
+            CreatorName = creator?.Username,
+            Tags = [.. dto.Tags]
+        };
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var stats = await deckUserStatsProjection.GetAsync();
+            var deckStats = stats.GetDeckStats(User.GetAppId(), dto.DeckId);
+            deck.Statistics = deckStats == null ? null : new DeckStatistics()
+            {
+                NotSeen = deckStats.NotSeen,
+                Correct = deckStats.Correct,
+                Incorrect = deckStats.Incorrect
+            };
+        }
+        return deck;
     }
 
     [HttpGet("{deckId:guid}")]
@@ -49,18 +92,10 @@ public class DeckController(
     [EndpointSummary("Deck Info")]
     public async Task<ActionResult<Deck>> GetDeckAsync([FromRoute] Guid deckId)
     {
-        var projection = await deckListProjection.GetAsync();
+        var projection = await decksProjection.GetAsync();
         var deck = projection.GetDeck(deckId);
-        await AddCreatorName(deck);
-        return Ok(deck);
-    }
-
-    private async Task AddCreatorName(params Deck[] decks) {
-        foreach (var deck in decks)
-        {
-            var user = await userStore.GetById(deck.CreatorId!.Value);
-            if(user != null) deck.CreatorName = user.Username;
-        }
+        if (deck == null) return NotFound();
+        return Ok(await DeckDtoToModel(deck));
     }
 
     [HttpGet("{deckId:guid}/cards")]

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Flashcards.Common.ServiceBus;
 using Flashcards.Common.Messages.Commands;
-using Flashcards.Common.Messages;
 using Flashcards.Api.Models;
 
 namespace Flashcards.Api.Controllers;
@@ -16,9 +15,10 @@ public class CardController(ICommandSender commandSender) : ControllerBase
     [EndpointSummary("Create Card")]
     public async Task<IActionResult> CreateCardAsync([FromBody] Card card)
     {
-        await commandSender.SendAsync(new CreateCardCommand(card.DeckId.Value, card.Front, card.Back) 
+        if (card.DeckId == null || card.Front == null || card.Back == null) return BadRequest();
+        await commandSender.SendAsync(new CreateCardCommand(card.DeckId.Value, card.Front, card.Back)
         {
-             Creator = User.GetAppId()
+            Creator = User.GetAppId()
         });
         return Ok();
     }
@@ -27,9 +27,10 @@ public class CardController(ICommandSender commandSender) : ControllerBase
     [EndpointSummary("Update Card")]
     public async Task<IActionResult> UpdateCardAsync([FromRoute] Guid cardId, [FromBody] Card card)
     {
-        await commandSender.SendAsync(new UpdateCardCommand(cardId, card.Front, card.Back) 
+        if (card.Front == null || card.Back == null) return BadRequest();
+        await commandSender.SendAsync(new UpdateCardCommand(cardId, card.Front, card.Back)
         {
-             Creator = User.GetAppId()
+            Creator = User.GetAppId()
         });
         return Ok();
     }
@@ -38,9 +39,10 @@ public class CardController(ICommandSender commandSender) : ControllerBase
     [EndpointSummary("Change Card Status")]
     public async Task<IActionResult> ChangeCardStatusAsync([FromRoute] Guid cardId, [FromBody] Card card)
     {
-        await commandSender.SendAsync(new ChangeCardStatusCommand(cardId, card.Status.Value) 
+        if (card.Status == null) return BadRequest("Status is required.");
+        await commandSender.SendAsync(new ChangeCardStatusCommand(cardId, card.Status.Value)
         {
-             Creator = User.GetAppId()
+            Creator = User.GetAppId()
         });
         return Ok();
     }

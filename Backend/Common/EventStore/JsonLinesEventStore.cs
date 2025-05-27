@@ -10,12 +10,14 @@ public class JsonLinesEventStore(IOptions<JsonLinesEventStoreOptions> options) :
     public JsonSerializerOptions SerializerOptions {get;} = new() {
         TypeInfoResolver = new JsonMessageTypeResolver()
     };
+    
     public async IAsyncEnumerable<IEvent> GetEventsAsync() {
         if (!File.Exists(FullPath)) yield break;
-
-        await foreach (var json in File.ReadLinesAsync(FullPath))
+        
+        var lines = await File.ReadAllLinesAsync(FullPath);
+        foreach (var json in lines)
         {
-            var @event = JsonSerializer.Deserialize<IEvent>(json, SerializerOptions) ?? 
+            var @event = JsonSerializer.Deserialize<IEvent>(json, SerializerOptions) ??
                 throw new InvalidOperationException("Failed to deserialize event.");
             yield return @event;
         }

@@ -13,12 +13,23 @@ public class Auth0UserStore(IOptions<Auth0UserStoreOptions> options, IHttpClient
 {
     private DateTime _tokenTime = DateTime.MinValue;
     private ManagementApiClient? _apiClient;
+    private SemaphoreSlim _semaphore = new(1, 1);
+    
+    private bool IsTokenExpired => _tokenTime < DateTime.Now.AddHours(-1);
 
     private async Task<ManagementApiClient> GetApiClient()
     {
         // Refresh access token every hour.
-        if (_tokenTime < DateTime.Now.AddHours(-1))
+        if (IsTokenExpired || _apiClient == null)
         {
+            await _semaphore.WaitAsync();
+            if (!IsTokenExpired)
+            {
+                // If another thread already refreshed the token, return the existing client.
+                _semaphore.Release();
+                return _apiClient!; 
+            }
+
             var opts = options.Value;
             var content = new StringContent(JsonSerializer.Serialize(new
             {
@@ -44,6 +55,7 @@ public class Auth0UserStore(IOptions<Auth0UserStoreOptions> options, IHttpClient
                 _apiClient.UpdateAccessToken(tokenResponse.Token);
             }
             _tokenTime = DateTime.Now;
+            _semaphore.Release();
         }
         return _apiClient!;
     }

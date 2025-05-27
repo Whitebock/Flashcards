@@ -21,6 +21,11 @@ public class Deck
     [ReadOnly(true)]
     [Description("Url-friendly name used for routing.")]
     public string EncodedName => Name == null ? "" : Name.ToLower().Replace(' ', '_');
+
+    [Description("Total amount of cards in this deck.")]
+    [DefaultValue(0)]
+    [ReadOnly(true)]
+    public int CardCount { get; set; } = 0;
     [ReadOnly(true)]
     public DeckStatistics? Statistics { get; set; } = null;
 }
@@ -38,8 +43,4 @@ public class DeckStatistics
     [Description("Number of cards answered incorrectly.")]
     [DefaultValue(0)]
     public int Incorrect { get; set; } = 0;
-
-    [Description("Total amount of cards in this deck.")]
-    [DefaultValue(0)]
-    public int Total => NotSeen + Correct + Incorrect;
 }

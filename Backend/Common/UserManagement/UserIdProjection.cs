@@ -12,16 +12,14 @@ public class UserIdProjection() :
 {
     private readonly HashSet<Guid> _userIds = [];
 
-    public Task HandleAsync(DeckCreated @event)
+    public void Handle(DeckCreated @event)
     {
         _userIds.Add(@event.Creator);
-        return Task.CompletedTask;
     }
 
-    public Task HandleAsync(CardStatusChanged @event)
+    public void Handle(CardStatusChanged @event)
     {
         _userIds.Add(@event.Creator);
-        return Task.CompletedTask;
     }
 
     public bool HasUserId(Guid userId)
