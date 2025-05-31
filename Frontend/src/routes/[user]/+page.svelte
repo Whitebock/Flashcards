@@ -8,8 +8,8 @@
     <i class="user circle icon"></i>
     {/if}
     <div class="content">
-        {data.profile.username}
-        <div class="sub header">{data.profile?.id}</div>
+        {data.profile.name}
+        <div class="sub header">{data.profile.username}</div>
     </div>
     {#if isCurrentUser}
     <a class="ui right floated button" href="/auth/logout">

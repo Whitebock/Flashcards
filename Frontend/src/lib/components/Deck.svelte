@@ -4,8 +4,13 @@
         {#if deck.tags?.includes("AI")} 
         <i class="right floated magic icon" title="This Deck uses AI generated content"></i>
         {/if}
-        <a class="header" href="/{deck.creatorName}/{deck.encodedName}">{deck.name}</a>
-        <div class="meta">by <a href="/{deck.creatorName}">{deck.creatorName}</a> - {deck.cardCount} Cards</div>
+        {#if deck.creator}
+        <a class="header" href="/{deck.creator.username}/{deck.encodedName}">{deck.name}</a>
+        <div class="meta">by <a href="/{deck.creator.username}">{deck.creator.name}</a> - {deck.cardCount} Cards</div>
+        {:else}
+        <div class="header">{deck.name}</div>
+        <div class="meta">by unknown - {deck.cardCount} Cards</div>
+        {/if}
         <div class="description">{deck.description}</div>
     </div>
     {#if deck.statistics}

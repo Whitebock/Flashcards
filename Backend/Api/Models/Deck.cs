@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Flashcards.Common.UserManagement;
 
 namespace Flashcards.Api.Models;
 
@@ -9,14 +10,10 @@ public class Deck
     public string? Name { get; set; }
     public string? Description { get; set; }
     public HashSet<string> Tags { get; set; } = [];
-
+    
     [ReadOnly(true)]
-    [Description("ID of the Creator")]
-    public Guid? CreatorId { get; set; }
-
-    [ReadOnly(true)]
-    [Description("Username of the Creator")]
-    public string? CreatorName { get; set; }
+    [Description("Creator of this deck")]
+    public IUser? Creator { get; set; }
 
     [ReadOnly(true)]
     [Description("Url-friendly name used for routing.")]

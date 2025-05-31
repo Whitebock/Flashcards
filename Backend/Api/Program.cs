@@ -27,6 +27,7 @@ builder.Services
     .AddProjection<DeckUserStatsProjection>()
     .AddProjection<CardProjection>()
     .AddProjection<UserIdProjection>()
+    .AddProjection<FeedProjection>()
     .AddHostedService<CommandHandlerService>()
     .AddCommandHandler<DeckCommandHandler>()
     .Configure<Auth0UserStoreOptions>(options =>
@@ -38,7 +39,6 @@ builder.Services
     .AddHttpClient()
     .AddSingleton<IUserStore, Auth0UserStore>()
     .Decorate<IUserStore, CachedUserStore>()
-    .Decorate<IUserStore, DeletedUserStore>()
     .AddMemoryCache();
 
 builder.Services.AddCors(options => {

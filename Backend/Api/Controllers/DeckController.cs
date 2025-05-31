@@ -69,8 +69,7 @@ public class DeckController(
             Name = dto.Name,
             Description = dto.Description,
             CardCount = dto.CardCount,
-            CreatorId = dto.CreatorId,
-            CreatorName = creator?.Username,
+            Creator = creator,
             Tags = [.. dto.Tags]
         };
         if (User.Identity?.IsAuthenticated == true)

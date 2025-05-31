@@ -2,7 +2,7 @@ namespace Flashcards.Common.Messages;
 
 public abstract record MessageBase : IMessage
 {
-    public DateTime Timestamp { get; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
     public required Guid Creator { get; set; }
 }
 

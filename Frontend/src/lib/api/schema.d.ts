@@ -375,6 +375,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Feed
+         * @description Returns a list of entries for the global feed.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Activity"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{username}": {
         parameters: {
             query?: never;
@@ -400,7 +439,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["User"];
+                        "application/json": components["schemas"]["IUser2"];
                     };
                 };
                 /** @description Not Found */
@@ -426,6 +465,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Activity: {
+            type: string;
+            user: components["schemas"]["IUser2"];
+            /** Format: date-time */
+            occurredAt: string;
+            deckName: string;
+            /** Format: int32 */
+            count: number;
+        };
         Card: {
             /** Format: uuid */
             readonly id?: string;
@@ -441,13 +489,7 @@ export interface components {
             name?: string | null;
             description?: string | null;
             tags?: string[];
-            /**
-             * Format: uuid
-             * @description ID of the Creator
-             */
-            readonly creatorId?: string | null;
-            /** @description Username of the Creator */
-            readonly creatorName?: string | null;
+            creator?: components["schemas"]["IUser"];
             /** @description Url-friendly name used for routing. */
             readonly encodedName?: string | null;
             /**
@@ -478,6 +520,21 @@ export interface components {
              */
             incorrect: number;
         } | null;
+        /** @description Creator of this deck */
+        IUser: {
+            /** Format: uuid */
+            id?: string;
+            username?: string | null;
+            name?: string | null;
+            picture?: string | null;
+        } | null;
+        IUser2: {
+            /** Format: uuid */
+            id?: string;
+            username?: string | null;
+            name?: string | null;
+            picture?: string | null;
+        };
         /** @enum {unknown|null} */
         NullableOfCardStatus: "NotSeen" | "Again" | "Good" | "Easy" | null;
         ProblemDetails: {
@@ -493,12 +550,6 @@ export interface components {
             /** Format: int32 */
             left: number;
         };
-        User: {
-            /** Format: uuid */
-            id: string;
-            username: string;
-            picture?: string | null;
-        };
     };
     responses: never;
     parameters: never;
@@ -506,12 +557,14 @@ export interface components {
     headers: never;
     pathItems: never;
 }
+export type Activity = components['schemas']['Activity'];
 export type Card = components['schemas']['Card'];
 export type Deck = components['schemas']['Deck'];
 export type DeckStatistics = components['schemas']['DeckStatistics'];
+export type IUser = components['schemas']['IUser'];
+export type IUser2 = components['schemas']['IUser2'];
 export type NullableOfCardStatus = components['schemas']['NullableOfCardStatus'];
 export type ProblemDetails = components['schemas']['ProblemDetails'];
 export type StudyDeckResponse = components['schemas']['StudyDeckResponse'];
-export type User = components['schemas']['User'];
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

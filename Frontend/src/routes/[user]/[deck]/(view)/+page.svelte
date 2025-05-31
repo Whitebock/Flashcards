@@ -4,7 +4,7 @@
 <h2 class="ui header">
     <div class="content">
         {data.deck.name}
-        <div class="sub header">by {data.deck.creatorName}</div>
+        <div class="sub header">by {data.deck.creator?.name}</div>
     </div>
 </h2>
 <p>{data.deck.description}</p>
@@ -15,7 +15,7 @@
     Study
 </a>
 
-{#if data.user.id == data.deck.creatorId}
+{#if data.user.id == data.deck.creator?.id}
 <a class="ui button" href="{data.deck.encodedName}/edit">
     <i class="edit icon"></i>
     Edit

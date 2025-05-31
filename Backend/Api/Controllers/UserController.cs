@@ -1,3 +1,4 @@
+using Flashcards.Api.Models;
 using Flashcards.Common.UserManagement;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,7 @@ public class UserController(IUserStore userStore) : ControllerBase
     [HttpGet]
     [Route("{username}")]
     [EndpointSummary("Get by Username")]
-    [ProducesResponseType<User>(StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType<IUser>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
     public async Task<IActionResult> GetByUsername([FromRoute] string username)
     {

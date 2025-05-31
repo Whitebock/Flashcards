@@ -51,12 +51,44 @@
         <h3 class="ui header">
             <div class="content">Latest Activities</div>
         </h3>
+        {#if data.feed.length == 0}
         <div class="ui placeholder segment">
             <div class="ui icon header">
                 <i class="feed icon"></i>
                 No updates to show
             </div>
         </div>
+        {:else}
+        <div class="ui scrolling segment">
+            <div class="ui small connected feed">
+                {#each data.feed as activity}
+                    <div class="event">
+                        <div class="label">
+                            {#if activity.type == "deck_added"}
+                            <i class="plus icon"></i>
+                            {:else if activity.type == "deck_edited" || activity.type == "cards_added"}
+                            <i class="pencil icon"></i>
+                            {/if}
+                        </div>
+                        <div class="content">
+                            <div class="summary">
+                                <a href="/{activity.user.username}">{activity.user.name}</a> 
+                                {#if activity.type == "deck_added"}
+                                added a new deck 
+                                {:else if activity.type == "cards_added" && activity.count == 1}
+                                added a new card to 
+                                {:else if activity.type == "cards_added" && activity.count > 1}
+                                added {activity.count} new cards to 
+                                {/if}
+                                <a href="/{activity.user.username}/{activity.deckName.toLowerCase().replaceAll(' ', '_')}">{activity.deckName}</a>
+                                <div class="date">{new Date(activity.occurredAt).toLocaleDateString()}</div>
+                            </div>
+                        </div>
+                    </div>
+                {/each}
+            </div>
+        </div>
+        {/if}
     </div>
 </div>
 

@@ -11,8 +11,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 			amount: 4,
 			sort: "new"
 		}}});
-		if(!popular || !recent) error(504, "Got an invalid response from the Api server");
-		return { popular, recent };
+		let { data: feed } = await locals.api.GET('/feed');
+		if(!popular || !recent || !feed) error(504, "Got an invalid response from the Api server");
+		return { popular, recent, feed };
 	} 
 	catch {
 		error(504, "Api server is not reachable");
