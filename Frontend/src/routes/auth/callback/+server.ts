@@ -23,9 +23,12 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
     cookies.delete("code_verifier", {path: "/auth"});
     cookies.delete('state', { path: '/auth' });
 
+    // Login was successful, so we fetch user info.
+    let userInfo = await client.fetchUserInfo(config, tokens.access_token, tokens.claims()!.sub);
+    
     await startSession(cookies, {
         access_token: tokens.access_token,
-        id_token: tokens.claims()!
+        user_info: userInfo
     });
 
     redirect(302, '/');

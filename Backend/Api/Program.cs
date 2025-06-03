@@ -28,6 +28,7 @@ builder.Services
     .AddProjection<CardProjection>()
     .AddProjection<UserIdProjection>()
     .AddProjection<FeedProjection>()
+    .AddProjection<SpacedRepetitionProjection>()
     .AddHostedService<CommandHandlerService>()
     .AddCommandHandler<DeckCommandHandler>()
     .Configure<Auth0UserStoreOptions>(options =>

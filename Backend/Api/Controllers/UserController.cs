@@ -1,4 +1,3 @@
-using Flashcards.Api.Models;
 using Flashcards.Common.UserManagement;
 using Microsoft.AspNetCore.Mvc;
 

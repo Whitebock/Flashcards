@@ -15,6 +15,7 @@ public class CardProjection :
         public required Guid DeckId { get; set; }
         public required string Front { get; set; }
         public required string Back { get; set; }
+        public required DateTime CreatedOn { get; set; }
         public CardStatus Status { get; set; } = CardStatus.NotSeen;
     };
     private readonly Dictionary<Guid, CardDto> _cards = [];
@@ -29,7 +30,8 @@ public class CardProjection :
             Id = e.CardId,
             DeckId = e.DeckId,
             Front = e.Front,
-            Back = e.Back
+            Back = e.Back,
+            CreatedOn = e.Timestamp
         });
     }
 

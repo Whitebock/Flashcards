@@ -1,12 +1,12 @@
 import type { Cookies } from '@sveltejs/kit';
-import type { IDToken } from 'openid-client';
+import type { UserInfoResponse } from 'openid-client';
 import { v4 as uuidv4 } from 'uuid';
 
 const map = new Map();
 
 interface Session {
     access_token: string;
-    id_token: IDToken;
+    user_info: UserInfoResponse;
 }
 
 export async function startSession(cookies: Cookies, data: Session): Promise<void> {

@@ -2,8 +2,8 @@
 	<title>Study | {data.deck.name}</title>
 </svelte:head>
 <div class="ui container flashcard-container">
-    <div class="ui small progress" data-percent={100 - (data.left / data.deck.statistics!.total) * 100}>
-        <div class="grey bar" style="width: {100 - (data.left / data.deck.statistics!.total) * 100}%;"></div>
+    <div class="ui small progress" data-percent={100 - (data.left / data.deck.cardCount) * 100}>
+        <div class="grey bar" style="width: {100 - (data.left / data.deck.cardCount) * 100}%;"></div>
         <div class="label">{data.left} Cards left</div>
     </div>
     <form method="POST" data-sveltekit-replacestate use:enhance>

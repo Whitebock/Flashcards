@@ -3,7 +3,6 @@ using Flashcards.Api.Projections;
 using Microsoft.AspNetCore.Authorization;
 using Flashcards.Common.UserManagement;
 using Flashcards.Common.ServiceBus;
-using Flashcards.Common.Messages;
 using Flashcards.Common.Messages.Commands;
 using Flashcards.Api.Models;
 using Flashcards.Common.Projections;
@@ -17,7 +16,8 @@ public class DeckController(
     IProjection<DecksProjection> decksProjection,
     IProjection<DeckActivityProjection> deckACtivityProjection,
     IProjection<DeckUserStatsProjection> deckUserStatsProjection,
-    IProjection<CardProjection> cardProjection, 
+    IProjection<CardProjection> cardProjection,
+    IProjection<SpacedRepetitionProjection> studyProjection,
     ICommandSender commandSender,
     IUserStore userStore
     ) : ControllerBase
@@ -155,14 +155,12 @@ public class DeckController(
     [EndpointSummary("Study a Deck")]
     public async Task<ActionResult<StudyDeckResponse>> GetStudyCardAsync([FromRoute] Guid deckId)
     {
-        var projection = await cardProjection.GetAsync();
-        var cards = projection
-            .GetCardsForDeck(deckId)
-            .Where(c => c.Status == CardStatus.NotSeen || c.Status == CardStatus.Again)
-            .OrderBy(c => c.Status);
+        var userId = User.GetAppId();
+        var studyPlanner = await studyProjection.GetAsync();
+        var toStudy = await studyPlanner.GetStudyBatchAsync(userId, deckId);
 
-        var card = cards.FirstOrDefault();
-        var left = cards.Count();
+        var card = toStudy.FirstOrDefault();
+        var left = toStudy.Count();
 
         if(card == null) return NotFound();
 
