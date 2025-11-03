@@ -1,11 +1,11 @@
 using System.ComponentModel;
-using Flashcards.Api.CommandHandler;
-using Flashcards.Api.Projections;
-using Flashcards.Common;
-using Flashcards.Common.EventStore;
-using Flashcards.Common.Projections;
-using Flashcards.Common.ServiceBus;
-using Flashcards.Common.UserManagement;
+using Flashcards.Common.Infrastructure.Consumers;
+using Flashcards.Common.Infrastructure.Producers;
+using Flashcards.Common.Infrastructure.UserStore;
+using Flashcards.Common.Interfaces;
+using Flashcards.Common.Messages;
+using KafkaFlow;
+using KafkaFlow.Serializer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi.Any;
@@ -14,23 +14,57 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddIniFile("appsettings.ini");
+builder.Services.AddKafkaFlowHostedService(kafka =>
+{
+    kafka.AddCluster(cluster =>
+    {
+        cluster.WithBrokers(["localhost"])
+            .AddConsumer(consumer => consumer
+                .Topic("Flashcards.Events")
+                .WithGroupId("Api")
+                .WithBufferSize(50)
+                .WithWorkersCount(1)
+                .WithAutoOffsetReset(AutoOffsetReset.Earliest)
+                .WithoutStoringOffsets()
+                .AddMiddlewares(middleware =>
+                {
+                    middleware
+                        .AddDeserializer<JsonCoreDeserializer>()
+                        .AddTypedHandlers(handlers => handlers
+                            .AddHandler<DecksProjection>()
+                            .AddHandler<DeckActivityProjection>()
+                            .AddHandler<DeckUserStatsProjection>()
+                            .AddHandler<CardProjection>()
+                            .AddHandler<FeedProjection>()
+                            .AddHandler<SpacedRepetitionProjection>()
+                    );
+                })
+            )
+            .AddProducer<ICommand>(producer => producer
+                .DefaultTopic("Flashcards.Commands")
+                .WithAcks(Acks.All)
+                .AddMiddlewares(middleware => middleware
+                    .AddSerializer<JsonCoreSerializer>())
+            );
+    });
+});
+// KafkaFlow already injects the Projection, and we only want to decorate them with an Interface.
 builder.Services
-    .AddSingleton<IServiceBus, JsonLinesServiceBus>()
-    .Configure<JsonLinesServiceBusOptions>(options => options.Dictionary = "../")
-    .AddHostedService(provider => provider.GetRequiredService<IServiceBus>())
-    .AddSingleton<ICommandSender, ServiceBusCommandSender>()
-    .AddSingleton<IEventSender, ServiceBusEventSender>()
-    .AddSingleton<IEventStore, JsonLinesEventStore>()
-    .Configure<JsonLinesEventStoreOptions>(options => { options.FilePath = "../events.jsonl"; })
-    .AddProjection<DecksProjection>()
-    .AddProjection<DeckActivityProjection>()
-    .AddProjection<DeckUserStatsProjection>()
-    .AddProjection<CardProjection>()
-    .AddProjection<UserIdProjection>()
-    .AddProjection<FeedProjection>()
-    .AddProjection<SpacedRepetitionProjection>()
-    .AddHostedService<CommandHandlerService>()
-    .AddCommandHandler<DeckCommandHandler>()
+    .AddSingleton<IDeckRepository, DecksProjection>(provider => 
+        provider.GetRequiredService<DecksProjection>())
+    .AddSingleton<IDeckActivityRepository, DeckActivityProjection>(provider => 
+        provider.GetRequiredService<DeckActivityProjection>())
+    .AddSingleton<IDeckUserStatsRepository, DeckUserStatsProjection>(provider => 
+        provider.GetRequiredService<DeckUserStatsProjection>())
+    .AddSingleton<ICardRepository, CardProjection>(provider => 
+        provider.GetRequiredService<CardProjection>())
+    .AddSingleton<IFeedRepository, FeedProjection>(provider => 
+        provider.GetRequiredService<FeedProjection>())
+    .AddSingleton<IRepetitionAlgorithm, SpacedRepetitionProjection>(provider => 
+        provider.GetRequiredService<SpacedRepetitionProjection>())
+    .AddSingleton<IDeckManager, DeckCommandProducer>()
+    .AddSingleton<ICardManager, CardCommandProducer>();
+builder.Services
     .Configure<Auth0UserStoreOptions>(options =>
     {
         options.Domain =  builder.Configuration["Auth0:Domain"];

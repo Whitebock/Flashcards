@@ -1,25 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Flashcards.Common.ServiceBus;
-using Flashcards.Common.Messages.Commands;
 using Flashcards.Api.Models;
+using Flashcards.Common.Interfaces;
 
 namespace Flashcards.Api.Controllers;
 
 [ApiController]
 [Authorize("HasUser")]
 [Route("cards")]
-public class CardController(ICommandSender commandSender) : ControllerBase
+public class CardController(ICardManager cardManager) : ControllerBase
 {    
     [HttpPost]
     [EndpointSummary("Create Card")]
     public async Task<IActionResult> CreateCardAsync([FromBody] Card card)
     {
         if (card.DeckId == null || card.Front == null || card.Back == null) return BadRequest();
-        await commandSender.SendAsync(new CreateCardCommand(card.DeckId.Value, card.Front, card.Back)
-        {
-            Creator = User.GetAppId()
-        });
+        await cardManager.CreateAsync(User.GetAppId(), card.DeckId.Value, card.Front, card.Back);
         return Ok();
     }
 
@@ -28,10 +24,7 @@ public class CardController(ICommandSender commandSender) : ControllerBase
     public async Task<IActionResult> UpdateCardAsync([FromRoute] Guid cardId, [FromBody] Card card)
     {
         if (card.Front == null || card.Back == null) return BadRequest();
-        await commandSender.SendAsync(new UpdateCardCommand(cardId, card.Front, card.Back)
-        {
-            Creator = User.GetAppId()
-        });
+        await cardManager.UpdateAsync(User.GetAppId(), cardId, card.Front, card.Back);
         return Ok();
     }
 
@@ -40,10 +33,7 @@ public class CardController(ICommandSender commandSender) : ControllerBase
     public async Task<IActionResult> ChangeCardStatusAsync([FromRoute] Guid cardId, [FromBody] Card card)
     {
         if (card.Status == null) return BadRequest("Status is required.");
-        await commandSender.SendAsync(new ChangeCardStatusCommand(cardId, card.Status.Value)
-        {
-            Creator = User.GetAppId()
-        });
+        await cardManager.ChangeStatusAsync(User.GetAppId(), cardId, card.Status.Value);
         return Ok();
     }
 
@@ -51,10 +41,7 @@ public class CardController(ICommandSender commandSender) : ControllerBase
     [EndpointSummary("Delete Card")]
     public async Task<IActionResult> DeleteCardAsync([FromRoute] Guid cardId)
     {
-        await commandSender.SendAsync(new DeleteCardCommand(cardId) 
-        {
-             Creator = User.GetAppId()
-        });
+        await cardManager.DeleteAsync(User.GetAppId(), cardId);
         return Ok();
     }
 }

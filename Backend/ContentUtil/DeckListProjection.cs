@@ -1,29 +1,27 @@
-using Flashcards.Common.Messages;
 using Flashcards.Common.Messages.Events;
+using KafkaFlow;
 
 namespace Flashcards.ContentUtil;
 
 public class DeckListProjection() :
-    IAsyncEventHandler<DeckCreated>,
-    IAsyncEventHandler<DeckUpdated>,
-    IAsyncEventHandler<DeckDeleted>
+    IMessageHandler<DeckCreated>,
+    IMessageHandler<DeckUpdated>,
+    IMessageHandler<DeckDeleted>
 {
     public Dictionary<Guid, string> Decks { get; set; } = [];
-    public Task HandleAsync(DeckCreated @event)
+
+    public Task Handle(IMessageContext context, DeckCreated @event)
     {
         Decks.Add(@event.DeckId, @event.Name);
-        return Task.CompletedTask;
-    }
+        return Task.CompletedTask;    }
 
-    public Task HandleAsync(DeckUpdated @event)
+    public Task Handle(IMessageContext context, DeckUpdated @event)
     {
         Decks[@event.DeckId] = @event.Name;
-        return Task.CompletedTask;
-    }
+        return Task.CompletedTask;    }
 
-    public Task HandleAsync(DeckDeleted @event)
+    public Task Handle(IMessageContext context, DeckDeleted @event)
     {
         Decks.Remove(@event.DeckId);
-        return Task.CompletedTask;
-    }
+        return Task.CompletedTask;    }
 }

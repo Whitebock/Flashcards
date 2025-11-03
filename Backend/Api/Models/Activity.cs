@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using Flashcards.Common.UserManagement;
+using Flashcards.Common.Interfaces;
 
 namespace Flashcards.Api.Models;
 

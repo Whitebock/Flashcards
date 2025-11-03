@@ -1,4 +1,4 @@
-using Flashcards.Common.UserManagement;
+using Flashcards.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Flashcards.Api.Controllers;

@@ -1,11 +1,10 @@
 ﻿using System.CommandLine;
-using Flashcards.Common;
-using Flashcards.Common.EventStore;
+using Flashcards.Common.Infrastructure.Producers;
+using Flashcards.Common.Interfaces;
 using Flashcards.Common.Messages;
-using Flashcards.Common.Messages.Commands;
-using Flashcards.Common.Projections;
-using Flashcards.Common.ServiceBus;
 using Flashcards.ContentUtil;
+using KafkaFlow;
+using KafkaFlow.Serializer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -15,15 +14,40 @@ using OpenAI;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Configuration.AddIniFile("appsettings.ini");
+builder.Services.AddKafka(kafka =>
+{
+    kafka.UseMicrosoftLog()
+        .AddCluster(cluster =>
+        {
+            cluster.WithBrokers(["localhost"])
+                .AddConsumer(consumer => consumer
+                    .Topic("Flashcards.Events")
+                    .WithGroupId("ContentUtil")
+                    .WithBufferSize(50)
+                    .WithWorkersCount(1)
+                    .WithAutoOffsetReset(AutoOffsetReset.Earliest)
+                    .AddMiddlewares(middleware =>
+                    {
+                        middleware
+                            .AddDeserializer<JsonCoreDeserializer>()
+                            .AddTypedHandlers(handlers => handlers
+                                .AddHandler<DeckListProjection>()
+                            );
+                    })
+                )
+                .AddProducer<ICommand>(producer => producer
+                    .DefaultTopic("Flashcards.Commands")
+                    .WithAcks(Acks.All)
+                    .AddMiddlewares(middlewares => middlewares
+                        .AddSerializer<JsonCoreSerializer>())
+                );
+        });
+});
 builder.Services
-    .AddSingleton<IServiceBus, JsonLinesServiceBus>()
-    .Configure<JsonLinesServiceBusOptions>(options => options.Dictionary = "../")
-    .AddSingleton<ICommandSender, ServiceBusCommandSender>()
-    .AddSingleton<IEventStore, JsonLinesEventStore>()
-    .Configure<JsonLinesEventStoreOptions>(options => { options.FilePath = "../events.jsonl"; })
-    .AddHostedService(provider => provider.GetRequiredService<IServiceBus>())
-    .AddProjection<DeckListProjection>()
-    .AddSingleton(provider => {
+    .AddSingleton<ICardManager, CardCommandProducer>()
+    .AddSingleton<IDeckManager, DeckCommandProducer>()
+    .AddSingleton(provider =>
+    {
         var config = provider.GetRequiredService<IConfiguration>();
         return new OpenAIClient(config["OpenAI:Key"]);
     })
@@ -31,23 +55,27 @@ builder.Services
     .AddTransient<DeckGenerator>();
 var app = builder.Build();
 
+var bus = app.Services.CreateKafkaBus();
+await bus.StartAsync();
 var rootCommand = new RootCommand("Flashcard content utility.");
 
 #region List
+
 var listCommand = new Command("list", "Show entity information.");
 
 var listDecksCommand = new Command("decks", "List all decks.");
 listDecksCommand.SetHandler(async () =>
 {
-    var projection = app.Services.GetRequiredService<IProjection<DeckListProjection>>();
-    var deckList = await projection.GetAsync();
-    foreach (var deck in deckList.Decks)
+    var projection = app.Services.GetRequiredService<DeckListProjection>();
+    foreach (var deck in projection.Decks)
         Console.WriteLine("{0} {1}", deck.Key.ToString()[..8], deck.Value);
 });
 listCommand.AddCommand(listDecksCommand);
+
 #endregion
 
 #region Generate
+
 var generateCommand = new Command("generate", "Generate content using AI.");
 var userOption = new Option<Guid>(name: "--user")
 {
@@ -69,43 +97,36 @@ var amountOption = new Option<int>(name: "--amount", () => 20)
 generateDeckCommand.AddOption(amountOption);
 generateDeckCommand.SetHandler(async (userId, topic, amount) =>
 {
-    var commandSender = app.Services.GetRequiredService<ICommandSender>();
+    var cardManager = app.Services.GetRequiredService<ICardManager>();
+    var deckManager = app.Services.GetRequiredService<IDeckManager>();
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     var generator = app.Services.GetRequiredService<DeckGenerator>();
 
-    var (Name, Description) = await generator.GenerateForTopicAsync(topic);
-    var cards = await generator.GenerateCardsAsync(Name, Description, amount);
-    Console.ForegroundColor = ConsoleColor.Cyan;
-    Console.WriteLine(Name);
-    Console.WriteLine(Description);
-    Console.ForegroundColor = ConsoleColor.White;
-    foreach (var (Front, Back) in cards.Take(5))
+    var (name, description) = await generator.GenerateForTopicAsync(topic);
+    var cards = await generator.GenerateCardsAsync(name, description, amount);
+    Console.WriteLine(name);
+    Console.WriteLine(description);
+    foreach (var (front, back) in cards.Take(5))
     {
-        Console.WriteLine($"{Front}: {Back}");
+        Console.WriteLine($"{front}: {back}");
     }
-    Console.ResetColor();
-    Console.Write("Created generated Deck? (y/n): ");
-    var create = Console.ReadKey().KeyChar == 'y';
-    Console.WriteLine();
-    if (!create) return;
 
     var deckId = Guid.NewGuid();
-    var commands = new List<ICommand>([
-        new CreateDeckCommand(Name, Description) {DeckId = deckId, Creator = userId},
-        new AddTagCommand(deckId, "AI") {Creator = userId}
-    ]);
-    foreach (var (Front, Back) in cards)
+    await deckManager.CreateAsync(userId, name, description, deckId);
+    await deckManager.AddTagAsync(userId, deckId, "AI");
+    foreach (var (front, back) in cards)
     {
-        commands.Add(new CreateCardCommand(deckId, Front, Back) { Creator = userId });
+        await cardManager.CreateAsync(userId, deckId, front, back);
     }
 
-    logger.LogInformation("Sending {Amount} commands", commands.Count);
-    await commandSender.SendAsync([.. commands]);
-
+    logger.LogInformation("Send {Amount} commands", cards.Count() + 2);
 }, userOption, topicOption, amountOption);
 generateCommand.AddCommand(generateDeckCommand);
+
 #endregion
 
 rootCommand.AddCommand(listCommand);
 rootCommand.AddCommand(generateCommand);
-return await rootCommand.InvokeAsync(args);
+var exitCode = await rootCommand.InvokeAsync(args);
+await bus.StopAsync();
+return exitCode;

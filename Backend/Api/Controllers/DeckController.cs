@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Flashcards.Api.Projections;
 using Microsoft.AspNetCore.Authorization;
-using Flashcards.Common.UserManagement;
-using Flashcards.Common.ServiceBus;
-using Flashcards.Common.Messages.Commands;
 using Flashcards.Api.Models;
-using Flashcards.Common.Projections;
+using Flashcards.Common.Infrastructure.Consumers;
+using Flashcards.Common.Interfaces;
 
 namespace Flashcards.Api.Controllers;
 
@@ -13,12 +10,12 @@ namespace Flashcards.Api.Controllers;
 [Authorize("HasUser")]
 [Route("decks")]
 public class DeckController(
-    IProjection<DecksProjection> decksProjection,
-    IProjection<DeckActivityProjection> deckACtivityProjection,
-    IProjection<DeckUserStatsProjection> deckUserStatsProjection,
-    IProjection<CardProjection> cardProjection,
-    IProjection<SpacedRepetitionProjection> studyProjection,
-    ICommandSender commandSender,
+    IDeckRepository deckRepository,
+    IDeckActivityRepository deckActivityRepository,
+    IDeckUserStatsRepository deckUserStatsRepository,
+    ICardRepository cardRepository,
+    IRepetitionAlgorithm repetitionAlgorithm,
+    IDeckManager  deckManager,
     IUserStore userStore
     ) : ControllerBase
 {
@@ -30,11 +27,11 @@ public class DeckController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
     public async Task<ActionResult<IEnumerable<Deck>>> SearchDecksAsync([FromQuery] DeckQuery query)
     {
-        var deckList = await decksProjection.GetAsync();
-        var decks = deckList.GetAllDecks();
+        var decks = deckRepository.GetAllDecks();
         if(query.User != null) {
             var user = await userStore.GetByUsername(query.User);
-            if(user == null) return NotFound("User was not found");
+            if(user == null) 
+                return NotFound("User was not found");
             decks = decks.Where(d => d.CreatorId.Equals(user.Id));
         }
         if(query.Name != null) {
@@ -49,8 +46,7 @@ public class DeckController(
                 decks = decks.OrderByDescending(deck => deck.Created);
                 break;
             case "popular":
-                var activity = await deckACtivityProjection.GetAsync();
-                decks = decks.OrderByDescending(deck => activity.GetDeckActivity(deck.DeckId));
+                decks = decks.OrderByDescending(deck => deckActivityRepository.GetDeckActivity(deck.DeckId));
                 break;
             default:
                 return BadRequest("Unknown sorting option: " + query.Sort);
@@ -74,8 +70,7 @@ public class DeckController(
         };
         if (User.Identity?.IsAuthenticated == true)
         {
-            var stats = await deckUserStatsProjection.GetAsync();
-            var deckStats = stats.GetDeckStats(User.GetAppId(), dto.DeckId);
+            var deckStats = deckUserStatsRepository.GetDeckStats(User.GetAppId(), dto.DeckId);
             deck.Statistics = deckStats == null ? null : new DeckStatistics()
             {
                 NotSeen = deckStats.NotSeen,
@@ -91,8 +86,7 @@ public class DeckController(
     [EndpointSummary("Deck Info")]
     public async Task<ActionResult<Deck>> GetDeckAsync([FromRoute] Guid deckId)
     {
-        var projection = await decksProjection.GetAsync();
-        var deck = projection.GetDeck(deckId);
+        var deck = deckRepository.GetDeck(deckId);
         if (deck == null) return NotFound();
         return Ok(await DeckDtoToModel(deck));
     }
@@ -102,8 +96,7 @@ public class DeckController(
     [EndpointSummary("Cards of a Deck")]
     public async Task<ActionResult<IEnumerable<Card>>> GetCardsForDeckAsync([FromRoute] Guid deckId)
     {
-        var projection = await cardProjection.GetAsync();
-        var cards = projection.GetCardsForDeck(deckId)
+        var cards = cardRepository.GetCardsForDeck(deckId)
             .Select(card => new Card() {
                 Id = card.Id,
                 Front = card.Front,
@@ -119,10 +112,7 @@ public class DeckController(
     public async Task<IActionResult> CreateDeckAsync([FromBody] Deck deck)
     {
         if(deck.Name == null || deck.Description == null) return BadRequest();
-        await commandSender.SendAsync(new CreateDeckCommand(deck.Name, deck.Description) 
-        {
-             Creator = User.GetAppId()
-        });
+        await deckManager.CreateAsync(User.GetAppId(), deck.Name, deck.Description);
         return Ok();
     }
 
@@ -131,10 +121,7 @@ public class DeckController(
     public async Task<IActionResult> UpdateDeckAsync([FromRoute] Guid deckId, [FromBody] Deck deck)
     {
         if(deck.Name == null || deck.Description == null) return BadRequest();
-        await commandSender.SendAsync(new UpdateDeckCommand(deckId, deck.Name, deck.Description) 
-        {
-             Creator = User.GetAppId()
-        });
+        await deckManager.UpdateAsync(User.GetAppId(), deckId, deck.Name, deck.Description);
         return Ok();
     }
 
@@ -142,10 +129,7 @@ public class DeckController(
     [EndpointSummary("Delete Deck")]
     public async Task<IActionResult> DeleteDeckAsync([FromRoute] Guid deckId)
     {
-        await commandSender.SendAsync(new DeleteDeckCommand(deckId) 
-        {
-             Creator = User.GetAppId()
-        });
+        await deckManager.DeleteAsync(User.GetAppId(), deckId);
         return Ok();
     }
 
@@ -156,8 +140,7 @@ public class DeckController(
     public async Task<ActionResult<StudyDeckResponse>> GetStudyCardAsync([FromRoute] Guid deckId)
     {
         var userId = User.GetAppId();
-        var studyPlanner = await studyProjection.GetAsync();
-        var toStudy = await studyPlanner.GetStudyBatchAsync(userId, deckId);
+        var toStudy = await repetitionAlgorithm.GetStudyBatchAsync(userId, deckId);
 
         var card = toStudy.FirstOrDefault();
         var left = toStudy.Count();

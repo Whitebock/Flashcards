@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using Flashcards.Common.UserManagement;
+using Flashcards.Common.Interfaces;
 
 namespace Flashcards.Api.Models;
 
