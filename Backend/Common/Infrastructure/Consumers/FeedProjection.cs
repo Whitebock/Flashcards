@@ -35,7 +35,7 @@ public class FeedProjection() :
         _globalFeed.Add(new FeedActivityDto()
         {
             Type = ActivityType.DeckCreated,
-            Timestamp = @event.Timestamp,
+            Timestamp = context.ConsumerContext.MessageTimestamp,
             UserId = @event.Creator,
             DeckId = @event.DeckId
         });
@@ -47,7 +47,7 @@ public class FeedProjection() :
         _globalFeed.Add(new FeedActivityDto()
         {
             Type = ActivityType.DeckEdited,
-            Timestamp = @event.Timestamp,
+            Timestamp = context.ConsumerContext.MessageTimestamp,
             UserId = @event.Creator,
             DeckId = @event.DeckId
         });
@@ -63,13 +63,13 @@ public class FeedProjection() :
         if (activity != null)
         {
             activity.Count++;
-            activity.Timestamp = @event.Timestamp;
+            activity.Timestamp = context.ConsumerContext.MessageTimestamp;
         }
         else
         {
             _globalFeed.Add(new FeedActivityDto()
             {
-                Timestamp = @event.Timestamp,
+                Timestamp = context.ConsumerContext.MessageTimestamp,
                 Type = ActivityType.CardAdded,
                 UserId = @event.Creator,
                 DeckId = @event.DeckId

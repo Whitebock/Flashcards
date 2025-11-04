@@ -29,7 +29,7 @@ public class SpacedRepetitionProjection(ICardRepository cardRepository) :
             CardStatus.Good => FreeSpacedRepetitionScheduler.Rating.Good,
             CardStatus.Easy => FreeSpacedRepetitionScheduler.Rating.Easy,
             _ => throw new ArgumentOutOfRangeException(nameof(@event.Status), "Invalid card rating")
-        }, @event.Timestamp);
+        }, context.ConsumerContext.MessageTimestamp);
         return Task.CompletedTask;
     }
 }

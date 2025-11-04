@@ -34,7 +34,7 @@ public class CardProjection :
             DeckId = e.DeckId,
             Front = e.Front,
             Back = e.Back,
-            CreatedOn = e.Timestamp
+            CreatedOn = context.ConsumerContext.MessageTimestamp
         });
         return Task.CompletedTask;
     }
