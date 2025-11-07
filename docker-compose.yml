@@ -1,0 +1,71 @@
+services:
+  kafka:
+    image: redpandadata/redpanda:latest
+    container_name: redpanda
+    command:
+      - redpanda start
+      - --overprovisioned
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --node-id 0
+      - --check=false
+      # Two listeners: internal for containers, external for host
+      - --kafka-addr PLAINTEXT://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      - --advertise-kafka-addr PLAINTEXT://kafka:29092,EXTERNAL://localhost:9092
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    depends_on:
+      - kafka
+  command-handler:
+    image: flashcards/command-handler
+    container_name: command-handler
+    build:
+      context: .
+      dockerfile: services/command-handler/src/Dockerfile
+    environment:
+      DOTNET_ENVIRONMENT: Production
+    depends_on:
+      - kafka
+  web-api:
+    image: flashcards/web-api
+    container_name: web-api
+    build:
+      context: .
+      dockerfile: services/web-api/src/Dockerfile
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      DOTNET_Auth0:ClientSecret: ${AUTH0_CLIENTSECRET}
+    depends_on:
+      - kafka
+  website:
+    image: flashcards/website
+    container_name: website
+    ports:
+      - "80:3000"
+    build:
+      context: services/website/
+    environment:
+      API_URL: http://web-api:8080
+  content-generator:
+    image: flashcards/content-generator
+    container_name: content-generator
+    build:
+      context: .
+      dockerfile: services/content-generator/src/Dockerfile
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      DOTNET_OpenAI:Key: ${OPENAI_KEY}
+    depends_on:
+      - kafka
+    profiles: [utils]
+volumes:
+  redpanda_data:
